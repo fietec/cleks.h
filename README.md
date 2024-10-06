@@ -9,6 +9,9 @@ Simply include the header file like this:
 #include "cleks.h"
 ```
 
+The default tokens in `cleks.h` are for the json format. 
+To add custom tokens for other languages, simply edit the enumerations and arrays `CleksTokenType`, `TokenStrings`, `Symbols`, `Words`, `StringDelimeters` and `Whitespaces`.
+
 For lexing, simply use `Cleks_lex` like this:
 ```c
 char buffer[] = "[1, 2, 3]"; // the buffer to parse
