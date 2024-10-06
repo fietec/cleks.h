@@ -7,21 +7,28 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+/* Customize here */
+
+// all the known tokens
 typedef enum{
-    TOKEN_STRING,
+    // mandatory tokens
+    TOKEN_STRING, // everything within StringDelimeters
+    TOKEN_WORD,   // unknown words
+    TOKEN_INT,    // integer literals
+    TOKEN_FLOAT,  // float literals
+
+    // custom tokens
     TOKEN_MAP_OPEN,
     TOKEN_MAP_CLOSE,
     TOKEN_ARRAY_OPEN,
     TOKEN_ARRAY_CLOSE,
     TOKEN_MAP_SEP,
     TOKEN_ITER_SEP,
-    TOKEN_WORD,
-    TOKEN_INT,
-    TOKEN_FLOAT,
     TOKEN_TRUE,
     TOKEN_FALSE
 } CleksTokenType;
 
+// definiton of values for Cleks_print_tokens
 const char* const TokenStrings[] = {
     [TOKEN_TRUE] = "Word: true",
     [TOKEN_FALSE] = "Word: false",
@@ -37,6 +44,7 @@ const char* const TokenStrings[] = {
     [TOKEN_ITER_SEP] = "Symbol: ,"    
 };
 
+// definition of the characters corresponding to the symbol tokens
 const char const Symbols[] = {
     [TOKEN_MAP_OPEN] = '{',
     [TOKEN_MAP_CLOSE] = '}',
@@ -44,6 +52,8 @@ const char const Symbols[] = {
     [TOKEN_ARRAY_CLOSE] = ']',
     [TOKEN_ITER_SEP] = ',',
     [TOKEN_MAP_SEP] = ':',
+
+    // set non-symbol tokens to '\0'
     [TOKEN_STRING] = '\0',
     [TOKEN_TRUE] = '\0',
     [TOKEN_FALSE] = '\0',
@@ -52,12 +62,15 @@ const char const Symbols[] = {
     [TOKEN_FLOAT] = '\0',
 };
 
+// definition of the strings corresponding to the word tokens
 const char* const Words[] = {
+    [TOKEN_WORD] = "", // has to be empty
     [TOKEN_TRUE] = "true",
     [TOKEN_FALSE] = "false",
+
+    // set non-word tokens to ""
     [TOKEN_INT] = "",
     [TOKEN_FLOAT] = "",
-    [TOKEN_WORD] = "",
     [TOKEN_STRING] = "",
     [TOKEN_MAP_OPEN] = "",
     [TOKEN_MAP_CLOSE] = "",
@@ -67,11 +80,13 @@ const char* const Words[] = {
     [TOKEN_ITER_SEP] = "",
 };
 
+// the characters, which encase a string
 const char const StringDelimeters[] = {'"'};
 
+// characters to be skipped when not in a string
 const char const Whitespaces[] = {' ', '\n'};
 
-// internals
+/* Internal definitions */
 
 typedef struct{
     CleksTokenType type;
