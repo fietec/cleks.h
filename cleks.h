@@ -115,7 +115,7 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
-#define CLEKS_PRINT_ID true
+#define CLEKS_PRINT_ID true // enable printing by cleks_info and cleks_debug
 
 #define CLEKS_ARR_LEN(arr) (sizeof((arr))/sizeof((arr)[0]))
 #define CLEKS_ANSI_END "\e[0m"
@@ -199,19 +199,13 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
     size_t word_start = clekser->index;
     while (clekser->index < clekser->buffer_size){
         char c = clekser->buffer[clekser->index];
-        if (cleks_c2t(c, StringDelimeters) != CLEKS_NOT_FOUND || cleks_c2t(c, Whitespaces) != CLEKS_NOT_FOUND || cleks_c2t(c, Symbols) != CLEKS_NOT_FOUND){
-            cleks_info("        %c is not part of the word: %d %d %d\n", c, cleks_c2t(c, StringDelimeters), cleks_c2t(c, Whitespaces), cleks_c2t(c, Symbols));
-            break;
-        }
+        if (cleks_c2t(c, StringDelimeters) != CLEKS_NOT_FOUND || cleks_c2t(c, Whitespaces) != CLEKS_NOT_FOUND || cleks_c2t(c, Symbols) != CLEKS_NOT_FOUND) break;
         clekser->index += 1;
     }
-    cleks_info("        found word of length %d: \"%.*s\"\n", clekser->index - word_start, clekser->index - word_start, clekser->buffer + word_start);
     clekser->mode = CLEKS_P_NONE;
-    // clekser->index -= 1;
     for (size_t i=0; i<CLEKS_ARR_LEN(Words); ++i){
         if (strncmp(clekser->buffer + word_start, Words[i], clekser->index - word_start) == 0){
             // words match
-            cleks_debug("Found word: '%s'", Words[i]);
             Cleks_append_token(tokens, (CleksTokenType) i, NULL);
             return 0;
         }
@@ -221,7 +215,6 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
         cleks_eprintln("Failed to allocate word value!");
         return 1;
     }
-    // TODO: check for types int and float
     if (str_is_int(word_value)){
         Cleks_append_token(tokens, TOKEN_INT, word_value);
     }
@@ -262,29 +255,24 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
     CleksTokens *tokens = Cleks_create_tokens(16);
     char c;
     while (clekser.index <= buffer_size && (c = buffer[clekser.index]) != '\0'){
-        cleks_debug("Lexing: index=%u, character='%c'", clekser.index, c);
         switch (clekser.mode){
             case CLEKS_P_NONE:{
                 int int_token;
                 if ((int_token = cleks_c2t(c, StringDelimeters)) != CLEKS_NOT_FOUND){
-                    cleks_info("    [INFO] is string del\n");
                     clekser.mode = CLEKS_P_STRING;
                     clekser.index += 1;
                     continue;
                 }
                 else if ((int_token = cleks_c2t(c, Symbols)) != CLEKS_NOT_FOUND){
-                    cleks_info("    [INFO] is symbol\n");
                     Cleks_append_token(tokens, (CleksTokenType) int_token, NULL);
                     clekser.index += 1;
                     continue;
                 }
                 else if ((int_token = cleks_c2t(c, Whitespaces)) != CLEKS_NOT_FOUND){
-                    cleks_info("    [INFO] is whitespace\n");
                     clekser.index += 1;
                     continue;
                 }
                 else{
-                    cleks_info("    [INFO] is beginning of word\n");
                     clekser.mode = CLEKS_P_WORD;
                     continue;
                 }
@@ -296,17 +284,14 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
                 }
             } break;
             case CLEKS_P_WORD:{
-                cleks_info("    lexing word\n");
                 if (Cleks_lex_word(&clekser, tokens) == 1){
                     Cleks_free_tokens(tokens);
                     return NULL;
                 }
-                cleks_info("    finished lexing word at index %d\n", clekser.index);
                 continue;
             }break;
             default:{
-                cleks_eprintln("[INTERNAL] Invalid parsing mode: %d", clekser.mode);
-                exit(1);
+                CLEKS_ASSERT(0, "[INTERNAL] Invalid parsing mode: %d!", clekser.mode);
             }
         }
         clekser.index += 1;
@@ -330,7 +315,7 @@ void Cleks_print_token(CleksToken *token)
 void Cleks_print_tokens(CleksTokens *tokens)
 {
     if (tokens == NULL){
-        cleks_eprintln("Invalid tokens: %p", tokens);
+        cleks_eprintln("Invalid tokens given!");
         return;
     }
     printf("Token count: %u\n  ", tokens->size);
@@ -340,7 +325,7 @@ void Cleks_print_tokens(CleksTokens *tokens)
     }
 }
 
-// library functions
+// string functions
 
 static char* strndup(char *s, size_t n)
 {
@@ -351,7 +336,8 @@ static char* strndup(char *s, size_t n)
     return n_str;
 }
 
-static bool str_is_int(char* s){
+static bool str_is_int(char* s)
+{
     if (!s) return false;
     char c;
     if (*s == '+' || *s == '-') s++;
@@ -362,7 +348,8 @@ static bool str_is_int(char* s){
     return true;
 }
 
-static bool str_is_float(char* s){
+static bool str_is_float(char* s)
+{
     char* ep = NULL;
     strtod(s, &ep);
     return (ep && !*ep);
