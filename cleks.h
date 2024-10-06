@@ -5,10 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-// customize (default: json)
-
-#define CLEKS_PRINT_ID false
+#include <ctype.h>
 
 typedef enum{
     TOKEN_IF,
@@ -19,13 +16,19 @@ typedef enum{
     TOKEN_MAP_CLOSE,
     TOKEN_ARRAY_OPEN,
     TOKEN_ARRAY_CLOSE,
-    TOKEN_MAP_SEP
-} CleksToken;
+    TOKEN_MAP_SEP,
+    TOKEN_WORD,
+    TOKEN_INT,
+    TOKEN_FLOAT,
+} CleksTokenType;
 
 const char* const TokenStrings[] = {
     [TOKEN_IF] = "Word: if",
     [TOKEN_WHILE] = "Word: while",
     [TOKEN_ELSE] = "Word: else",
+    [TOKEN_INT] = "Word: integer",
+    [TOKEN_FLOAT] = "Word: float",
+    [TOKEN_WORD] = "Word: unknown",
     [TOKEN_STRING] = "String",
     [TOKEN_MAP_OPEN] = "Symbol: {",
     [TOKEN_MAP_CLOSE] = "Symbol: }",
@@ -44,12 +47,18 @@ const char const Symbols[] = {
     [TOKEN_IF] = '\0',
     [TOKEN_WHILE] = '\0',
     [TOKEN_ELSE] = '\0',
+    [TOKEN_WORD] = '\0',
+    [TOKEN_INT] = '\0',
+    [TOKEN_FLOAT] = '\0',
 };
 
 const char* const Words[] = {
     [TOKEN_IF] = "if",
     [TOKEN_WHILE] = "while",
     [TOKEN_ELSE] = "else",
+    [TOKEN_INT] = "",
+    [TOKEN_FLOAT] = "",
+    [TOKEN_WORD] = "",
     [TOKEN_STRING] = "",
     [TOKEN_MAP_OPEN] = "",
     [TOKEN_MAP_CLOSE] = "",
@@ -64,6 +73,11 @@ const char const Whitespaces[] = {' ', '\n'};
 
 // internals
 
+typedef struct{
+    CleksTokenType type;
+    char *value;
+} CleksToken;
+
 typedef enum{
     CLEKS_P_NONE,
     CLEKS_P_STRING,
@@ -71,7 +85,7 @@ typedef enum{
 } CleksMode;
 
 typedef struct{
-    CleksToken *items;
+    CleksToken **items;
     size_t size;
     size_t capacity;
 } CleksTokens;
@@ -86,6 +100,8 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
+#define CLEKS_PRINT_ID false
+
 #define CLEKS_ARR_LEN(arr) (sizeof((arr))/sizeof((arr)[0]))
 #define CLEKS_ANSI_END "\e[0m"
 #define CLEKS_ANSI_RGB(r, g, b) ("\e[38;2;" #r ";" #g ";" #b "m")
@@ -98,13 +114,16 @@ typedef struct{
 
 #define cleks_c2t(c, arr) (Cleks_char2Token(c, arr, CLEKS_ARR_LEN(arr)))
 
-void Cleks_print_token(CleksToken token);
+void Cleks_print_token(CleksToken *token);
+static char* strndup(char* s, size_t n);
+static bool str_is_int(char *s);
+static bool str_is_float(char *s);
 
 CleksTokens* Cleks_create_tokens(size_t capacity)
 {
     CleksTokens *tokens = (CleksTokens*) malloc(sizeof(*tokens));
     CLEKS_ASSERT(tokens != NULL, "Failed to allocate CleksTokens!");
-    tokens->items = (CleksToken*) calloc(capacity, sizeof(CleksToken));
+    tokens->items = (CleksToken**) calloc(capacity, sizeof(CleksToken*));
     if (tokens->items == NULL){
         free(tokens);
         cleks_eprintln("Failed to allocate CleksTokens items!");
@@ -119,25 +138,35 @@ void Cleks_free_tokens(CleksTokens *tokens)
 {
     if (tokens != NULL){
         if (tokens->items != NULL){
+            for (size_t i=0; i<tokens->size; ++i){
+                CleksToken *token = tokens->items[i];
+                if (token != NULL){
+                    free(token);
+                }
+            }
             free(tokens->items);
         }
         free(tokens);
     }
 }
 
-void Cleks_append_token(CleksTokens *tokens, CleksToken token)
+void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value)
 {
     if (!tokens){
         cleks_eprintln("Invalid CleksTokens pointer!");
         exit(1);
     } 
     if (tokens->size >= tokens->capacity){
-        size_t new_capacity = tokens->capacity * CLEKSTOKENS_RSF*sizeof(CleksToken);
-        CleksToken *new_items = (CleksToken*) realloc(tokens->items, new_capacity);
+        size_t new_capacity = tokens->capacity * CLEKSTOKENS_RSF;
+        CleksToken **new_items = (CleksToken**) realloc(tokens->items, new_capacity*sizeof(CleksToken*));
         CLEKS_ASSERT(new_items != NULL, "Failed to resize CleksTokens!");
         tokens->items = new_items;
         tokens->capacity = new_capacity;
     }
+    CleksToken *token = calloc(1, sizeof(CleksToken));
+    CLEKS_ASSERT(token != NULL, "Failed to allocate new CleksToken!");
+    token->type = token_type;
+    token->value = token_value; 
     tokens->items[tokens->size++] = token;
 }
 
@@ -168,12 +197,26 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
         if (strncmp(clekser->buffer + word_start, Words[i], clekser->index - word_start) == 0){
             // words match
             cleks_debug("Found word: '%s'", Words[i]);
-            Cleks_append_token(tokens, (CleksToken) i);
+            Cleks_append_token(tokens, (CleksTokenType) i, NULL);
             return 0;
         }
     }
-    cleks_eprintln("Found unknown word: \"%.*s\"", clekser->index - word_start, clekser->buffer + word_start);
-    return 1;
+    char *word_value = strndup(clekser->buffer + word_start, clekser->index - word_start);
+    if (word_value == NULL){
+        cleks_eprintln("Failed to allocate word value!");
+        return 1;
+    }
+    // TODO: check for types int and float
+    if (str_is_int(word_value)){
+        Cleks_append_token(tokens, TOKEN_INT, word_value);
+    }
+    else if (str_is_float(word_value)){
+        Cleks_append_token(tokens, TOKEN_FLOAT, word_value);
+    }
+    else {
+        Cleks_append_token(tokens, TOKEN_WORD, word_value);
+    }
+    return 0;
 }
 
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
@@ -195,7 +238,7 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
                 }
                 else if ((int_token = cleks_c2t(c, Symbols)) != CLEKS_NOT_FOUND){
                     cleks_info("    [INFO] is symbol\n");
-                    Cleks_append_token(tokens, (CleksToken) int_token);
+                    Cleks_append_token(tokens, (CleksTokenType) int_token, NULL);
                     clekser.index += 1;
                     continue;
                 }
@@ -232,20 +275,58 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
     return tokens;
 }
 
-void Cleks_print_token(CleksToken token)
+void Cleks_print_token(CleksToken *token)
 {
-    CLEKS_ASSERT((int) token < CLEKS_ARR_LEN(TokenStrings), "This token does not exist! %d/%d", token, CLEKS_ARR_LEN(TokenStrings));
-    printf("Token: %s\n", TokenStrings[token]);
+    if (token == NULL || token->type >= CLEKS_ARR_LEN(TokenStrings)){
+        cleks_eprintln("Invalid token: token: %p, type: %d", token, (int) token->type);
+        return;
+    }
+    printf("Token: %s", TokenStrings[token->type]);
+    if (token->value != NULL){
+        printf(" \"%s\"", token->value);
+    }
+    putchar('\n');
 }
 
 void Cleks_print_tokens(CleksTokens *tokens)
 {
-    CLEKS_ASSERT(tokens != NULL, "Invalid parameter!");
-    printf("Token count: %u\n", tokens->size);
+    if (tokens == NULL){
+        cleks_eprintln("Invalid tokens: %p", tokens);
+        return;
+    }
+    printf("Token count: %u\n  ", tokens->size);
     for (size_t i=0; i<tokens->size; ++i){
         Cleks_print_token(tokens->items[i]);
         printf("  ");
     }
+}
+
+// library functions
+
+static char* strndup(char *s, size_t n)
+{
+    char *n_str = (char*) calloc(n+1, sizeof(*n_str));
+    if (n_str != NULL){
+        strncpy(n_str, s, n);
+    }
+    return n_str;
+}
+
+static bool str_is_int(char* s){
+    if (!s) return false;
+    char c;
+    if (*s == '+' || *s == '-') s++;
+    if (*s == '\0') return false;
+    while ((c = *s++)){
+        if (!isdigit(c)) return false;
+    }
+    return true;
+}
+
+static bool str_is_float(char* s){
+    char* ep = NULL;
+    strtod(s, &ep);
+    return (ep && !*ep);
 }
 
 #endif // _CLEKS_H
