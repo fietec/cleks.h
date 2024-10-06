@@ -8,24 +8,23 @@
 #include <ctype.h>
 
 typedef enum{
-    TOKEN_IF,
-    TOKEN_WHILE,
-    TOKEN_ELSE,
     TOKEN_STRING,
     TOKEN_MAP_OPEN,
     TOKEN_MAP_CLOSE,
     TOKEN_ARRAY_OPEN,
     TOKEN_ARRAY_CLOSE,
     TOKEN_MAP_SEP,
+    TOKEN_ITER_SEP,
     TOKEN_WORD,
     TOKEN_INT,
     TOKEN_FLOAT,
+    TOKEN_TRUE,
+    TOKEN_FALSE
 } CleksTokenType;
 
 const char* const TokenStrings[] = {
-    [TOKEN_IF] = "Word: if",
-    [TOKEN_WHILE] = "Word: while",
-    [TOKEN_ELSE] = "Word: else",
+    [TOKEN_TRUE] = "Word: true",
+    [TOKEN_FALSE] = "Word: false",
     [TOKEN_INT] = "Word: integer",
     [TOKEN_FLOAT] = "Word: float",
     [TOKEN_WORD] = "Word: unknown",
@@ -34,7 +33,8 @@ const char* const TokenStrings[] = {
     [TOKEN_MAP_CLOSE] = "Symbol: }",
     [TOKEN_ARRAY_OPEN] = "Symbol: [",
     [TOKEN_ARRAY_CLOSE] = "Symbol: ]",
-    [TOKEN_MAP_SEP] = "Symbol: :"    
+    [TOKEN_MAP_SEP] = "Symbol: :",
+    [TOKEN_ITER_SEP] = "Symbol: ,"    
 };
 
 const char const Symbols[] = {
@@ -42,20 +42,19 @@ const char const Symbols[] = {
     [TOKEN_MAP_CLOSE] = '}',
     [TOKEN_ARRAY_OPEN] = '[',
     [TOKEN_ARRAY_CLOSE] = ']',
+    [TOKEN_ITER_SEP] = ',',
     [TOKEN_MAP_SEP] = ':',
     [TOKEN_STRING] = '\0',
-    [TOKEN_IF] = '\0',
-    [TOKEN_WHILE] = '\0',
-    [TOKEN_ELSE] = '\0',
+    [TOKEN_TRUE] = '\0',
+    [TOKEN_FALSE] = '\0',
     [TOKEN_WORD] = '\0',
     [TOKEN_INT] = '\0',
     [TOKEN_FLOAT] = '\0',
 };
 
 const char* const Words[] = {
-    [TOKEN_IF] = "if",
-    [TOKEN_WHILE] = "while",
-    [TOKEN_ELSE] = "else",
+    [TOKEN_TRUE] = "true",
+    [TOKEN_FALSE] = "false",
     [TOKEN_INT] = "",
     [TOKEN_FLOAT] = "",
     [TOKEN_WORD] = "",
@@ -64,7 +63,8 @@ const char* const Words[] = {
     [TOKEN_MAP_CLOSE] = "",
     [TOKEN_ARRAY_OPEN] = "",
     [TOKEN_ARRAY_CLOSE] = "",
-    [TOKEN_MAP_SEP] = ""
+    [TOKEN_MAP_SEP] = "",
+    [TOKEN_ITER_SEP] = "",
 };
 
 const char const StringDelimeters[] = {'"'};
@@ -100,7 +100,7 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
-#define CLEKS_PRINT_ID false
+#define CLEKS_PRINT_ID true
 
 #define CLEKS_ARR_LEN(arr) (sizeof((arr))/sizeof((arr)[0]))
 #define CLEKS_ANSI_END "\e[0m"
@@ -219,6 +219,27 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
     return 0;
 }
 
+int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
+{
+    // TODO: add escape code support
+    CLEKS_ASSERT(clekser != NULL && tokens != NULL, "Invalid Arguments: clekser=%p, tokens=%p", clekser, tokens);
+    size_t str_start = clekser->index;
+    while (clekser->index < clekser->buffer_size){
+        if (clekser->buffer[++(clekser->index)] == '"'){
+            break;
+        }
+    }
+
+    char *str_value = strndup(clekser->buffer + str_start, clekser->index - str_start);
+    if (str_value == NULL){
+        cleks_eprintln("Failed to allocate string value!");
+        return 1;
+    }
+    clekser->mode = CLEKS_P_NONE;
+    Cleks_append_token(tokens, TOKEN_STRING, str_value);
+    return 0;
+}
+
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
 {
     CLEKS_ASSERT(buffer != NULL && buffer_size != 0, "Invalid arguments!");
@@ -254,7 +275,10 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
                 }
             };
             case CLEKS_P_STRING:{
-                clekser.index += 1;
+                if (Cleks_lex_string(&clekser, tokens) == 1){
+                    Cleks_free_tokens(tokens);
+                    return NULL;
+                }
             } break;
             case CLEKS_P_WORD:{
                 cleks_info("    lexing word\n");
