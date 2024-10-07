@@ -81,7 +81,7 @@ const char* const Words[] = {
 };
 
 // the characters, which encase a string
-const char const StringDelimeters[] = {'"'};
+const char const StringDelimeters[] = {'"', '|'};
 
 // characters to be skipped when not in a string
 const char const Whitespaces[] = {' ', '\n'};
@@ -232,8 +232,11 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
     // TODO: add escape code support
     CLEKS_ASSERT(clekser != NULL && tokens != NULL, "Invalid Arguments: clekser=%p, tokens=%p", clekser, tokens);
     size_t str_start = clekser->index;
+    char c;
     while (clekser->index < clekser->buffer_size){
-        if (clekser->buffer[++(clekser->index)] == '"'){
+        c = clekser->buffer[++(clekser->index)];
+        CLEKS_ASSERT(c != '\0', "[PARSING] Unclosed string delimeters at index %u!", str_start);
+        if (cleks_c2t(c, StringDelimeters) != CLEKS_NOT_FOUND){
             break;
         }
     }
@@ -250,7 +253,7 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
 
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
 {
-    CLEKS_ASSERT(buffer != NULL && buffer_size != 0, "Invalid arguments!");
+    CLEKS_ASSERT(buffer != NULL && buffer_size != 0, "Invalid arguments!"); 
     Clekser clekser = {.buffer=buffer, .buffer_size=buffer_size, .mode = CLEKS_P_NONE, .index=0};
     CleksTokens *tokens = Cleks_create_tokens(16);
     char c;
@@ -329,6 +332,7 @@ void Cleks_print_tokens(CleksTokens *tokens)
 
 static char* strndup(char *s, size_t n)
 {
+    if (s == NULL) return NULL;
     char *n_str = (char*) calloc(n+1, sizeof(*n_str));
     if (n_str != NULL){
         strncpy(n_str, s, n);
