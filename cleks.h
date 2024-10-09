@@ -156,6 +156,7 @@ void Cleks_free_tokens(CleksTokens *tokens)
             for (size_t i=0; i<tokens->size; ++i){
                 CleksToken *token = tokens->items[i];
                 if (token != NULL){
+                    free(token->value);
                     free(token);
                 }
             }
