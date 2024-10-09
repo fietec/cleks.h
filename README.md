@@ -32,6 +32,3 @@ To free the allocated memory use:
 ```c
 Cleks_free_tokens(<CleksTokens*>);
 ```
-
-## Known Issues
-- Features such as parsing integers and floats can't be disabled
