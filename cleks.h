@@ -249,28 +249,30 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
     }
     
     // handle escape codes
-    size_t i = 0; // index in clekser->buffer
-    size_t j = 0; // index in str_value
-    for (; i<str_len; ++i, ++j){
-        c = clekser->buffer[str_start + i];
-        if (c == '\\'){
-            switch(clekser->buffer[str_start + (++i)]){
-                case '\'': str_value[j] = 0x27; break;
-                case '"':  str_value[j] = 0x22; break;
-                case '?':  str_value[j] = 0x3f; break;
-                case '\\': str_value[j] = 0x5c; break;
-                case 'a':  str_value[j] = 0x07; break;
-                case 'b':  str_value[j] = 0x08; break;
-                case 'f':  str_value[j] = 0x0c; break;
-                case 'n':  str_value[j] = 0x0a; break;
-                case 'r':  str_value[j] = 0x0d; break;
-                case 't':  str_value[j] = 0x09; break;
-                case 'v':  str_value[j] = 0x0b; break; 
+    char *buff_start = clekser->buffer + str_start;
+    char *iB = buff_start;
+    char *iS = str_value;
+    while (iB - buff_start < str_len){
+        if (*iB == '\\'){
+            switch(*++iB){
+                case '\'': *iS = 0x27; break;
+                case '"':  *iS = 0x22; break;
+                case '?':  *iS = 0x3f; break;
+                case '\\': *iS = 0x5c; break;
+                case 'a':  *iS = 0x07; break;
+                case 'b':  *iS = 0x08; break;
+                case 'f':  *iS = 0x0c; break;
+                case 'n':  *iS = 0x0a; break;
+                case 'r':  *iS = 0x0d; break;
+                case 't':  *iS = 0x09; break;
+                case 'v':  *iS = 0x0b; break;
             }
         }
         else{
-            str_value[j] = c;
+            *iS = *iB;
         }
+        iB++;   
+        iS++;
     }
     clekser->mode = CLEKS_P_NONE;
     Cleks_append_token(tokens, TOKEN_STRING, str_value);
