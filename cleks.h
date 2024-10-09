@@ -130,7 +130,7 @@ typedef struct{
 #define cleks_c2t(c, arr) (Cleks_char2Token(c, arr, CLEKS_ARR_LEN(arr)))
 
 void Cleks_print_token(CleksToken *token);
-static char* strndup(char* s, size_t n);
+static char* strndup(char *s, size_t n);
 static bool str_is_int(char *s);
 static bool str_is_float(char *s);
 
@@ -241,10 +241,36 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
         }
     }
 
-    char *str_value = strndup(clekser->buffer + str_start, clekser->index - str_start);
+    size_t str_len = clekser->index - str_start;
+    char *str_value = (char*) calloc(str_len+1, sizeof(char));
     if (str_value == NULL){
         cleks_eprintln("Failed to allocate string value!");
         return 1;
+    }
+    
+    // handle escape codes
+    size_t i = 0; // index in clekser->buffer
+    size_t j = 0; // index in str_value
+    for (; i<str_len; ++i, ++j){
+        c = clekser->buffer[str_start + i];
+        if (c == '\\'){
+            switch(clekser->buffer[str_start + (++i)]){
+                case '\'': str_value[j] = 0x27; break;
+                case '"':  str_value[j] = 0x22; break;
+                case '?':  str_value[j] = 0x3f; break;
+                case '\\': str_value[j] = 0x5c; break;
+                case 'a':  str_value[j] = 0x07; break;
+                case 'b':  str_value[j] = 0x08; break;
+                case 'f':  str_value[j] = 0x0c; break;
+                case 'n':  str_value[j] = 0x0a; break;
+                case 'r':  str_value[j] = 0x0d; break;
+                case 't':  str_value[j] = 0x09; break;
+                case 'v':  str_value[j] = 0x0b; break; 
+            }
+        }
+        else{
+            str_value[j] = c;
+        }
     }
     clekser->mode = CLEKS_P_NONE;
     Cleks_append_token(tokens, TOKEN_STRING, str_value);
@@ -333,7 +359,7 @@ void Cleks_print_tokens(CleksTokens *tokens)
 static char* strndup(char *s, size_t n)
 {
     if (s == NULL) return NULL;
-    char *n_str = (char*) calloc(n+1, sizeof(*n_str));
+    char *n_str = (char*) calloc(n+1, sizeof(char));
     if (n_str != NULL){
         strncpy(n_str, s, n);
     }
