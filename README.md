@@ -34,6 +34,5 @@ Cleks_free_tokens(<CleksTokens*>);
 ```
 
 ## Known Issues
-
-- No support for escape codes in strings
+- No build system so far (this is stil in development)
 - Features such as parsing integers and floats can't be disabled
