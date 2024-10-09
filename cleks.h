@@ -81,7 +81,7 @@ const char* const Words[] = {
 };
 
 // the characters, which encase a string
-const char const StringDelimeters[] = {'"', '|'};
+const char const StringDelimeters[] = {'"'};
 
 // characters to be skipped when not in a string
 const char const Whitespaces[] = {' ', '\n'};
@@ -229,7 +229,6 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
 
 int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
 {
-    // TODO: add escape code support
     CLEKS_ASSERT(clekser != NULL && tokens != NULL, "Invalid Arguments: clekser=%p, tokens=%p", clekser, tokens);
     size_t str_start = clekser->index;
     char c;

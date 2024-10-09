@@ -34,5 +34,4 @@ Cleks_free_tokens(<CleksTokens*>);
 ```
 
 ## Known Issues
-- No build system so far (this is stil in development)
 - Features such as parsing integers and floats can't be disabled
