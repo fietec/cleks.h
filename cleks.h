@@ -107,6 +107,9 @@ const char const StringDelimeters[] = {'"'};
 // characters to be skipped when not in a string
 const char const Whitespaces[] = {' ', '\n'};
 
+// strings that define a comment
+const char* const Comments[] = {"//", "#"};
+
 /* Internal definitions */
 
 typedef struct{
@@ -302,6 +305,33 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens)
     return 0;
 }
 
+int Cleks_lex_comment(Clekser *clekser)
+{
+    CLEKS_ASSERT(clekser != NULL, "Invalid arguments: clekser: %p!", clekser);
+    for (size_t i=0; i<CLEKS_ARR_LEN(Comments); ++i){
+        const char *del = Comments[i];
+        bool equals = true;
+        size_t temp_index = clekser->index;
+        for (size_t j=0; j<strlen(del); ++j){
+            temp_index += j;
+            if (clekser->buffer[temp_index] != del[j]){
+                equals = false;
+                break;
+            }
+        }
+        // skip until end of line
+        if (equals){
+            char c;
+            while ((c = clekser->buffer[temp_index]) != '\n' && temp_index < clekser->buffer_size){
+                temp_index ++;
+            }
+            clekser->index = temp_index;
+            return 0;
+        }
+    }
+    return 1;
+}
+
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
 {
     CLEKS_ASSERT(buffer != NULL && buffer_size != 0, "Invalid arguments!"); 
@@ -325,6 +355,9 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size)
                 else if ((int_token = cleks_c2t(c, Whitespaces)) != CLEKS_NOT_FOUND){
                     clekser.index += 1;
                     continue;
+                }
+                else if (Cleks_lex_comment(&clekser) == 0){
+                    break;
                 }
                 else{
                     clekser.mode = CLEKS_P_WORD;
