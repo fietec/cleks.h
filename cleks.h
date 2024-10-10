@@ -9,13 +9,22 @@
 
 /* Customize here */
 
+#define CLEKS_LEX_INTEGER // detect integers
+#define CLEKS_LEX_FLOATS  // detect floats
+
+#define CLEKS_PRINT_ID true // enable printing by cleks_info and cleks_debug
+
 // all the known tokens
 typedef enum{
     // mandatory tokens
     TOKEN_STRING, // everything within StringDelimeters
     TOKEN_WORD,   // unknown words
+    #ifdef CLEKS_LEX_INTEGER
     TOKEN_INT,    // integer literals
+    #endif // CLEKS_LEX_INTEGER
+    #ifdef CLEKS_LEX_FLOATS
     TOKEN_FLOAT,  // float literals
+    #endif // CLEKS_LEX_FLOATS
 
     // custom tokens
     TOKEN_MAP_OPEN,
@@ -32,8 +41,12 @@ typedef enum{
 const char* const TokenStrings[] = {
     [TOKEN_TRUE] = "Word: true",
     [TOKEN_FALSE] = "Word: false",
+    #ifdef CLEKS_LEX_INTEGER
     [TOKEN_INT] = "Word: integer",
+    #endif // CLEKS_LEX_INTEGER
+    #ifdef CLEKS_LEX_FLOATS
     [TOKEN_FLOAT] = "Word: float",
+    #endif // CLEKS_LEX_FLOATS
     [TOKEN_WORD] = "Word: unknown",
     [TOKEN_STRING] = "String",
     [TOKEN_MAP_OPEN] = "Symbol: {",
@@ -58,8 +71,12 @@ const char const Symbols[] = {
     [TOKEN_TRUE] = '\0',
     [TOKEN_FALSE] = '\0',
     [TOKEN_WORD] = '\0',
+    #ifdef CLEKS_LEX_INTEGER
     [TOKEN_INT] = '\0',
+    #endif // CLEKS_LEX_INTEGER
+    #ifdef CLEKS_LEX_FLOATS
     [TOKEN_FLOAT] = '\0',
+    #endif // CLEKS_LEX_FLOATS
 };
 
 // definition of the strings corresponding to the word tokens
@@ -69,8 +86,12 @@ const char* const Words[] = {
     [TOKEN_FALSE] = "false",
 
     // set non-word tokens to ""
+    #ifdef CLEKS_LEX_INTEGER
     [TOKEN_INT] = "",
+    #endif // CLEKS_LEX_INTEGER
+    #ifdef CLEKS_LEX_FLOATS
     [TOKEN_FLOAT] = "",
+    #endif // CLEKS_LEX_FLOATS
     [TOKEN_STRING] = "",
     [TOKEN_MAP_OPEN] = "",
     [TOKEN_MAP_CLOSE] = "",
@@ -114,8 +135,6 @@ typedef struct{
 
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
-
-#define CLEKS_PRINT_ID true // enable printing by cleks_info and cleks_debug
 
 #define CLEKS_ARR_LEN(arr) (sizeof((arr))/sizeof((arr)[0]))
 #define CLEKS_ANSI_END "\e[0m"
@@ -217,10 +236,14 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
         return 1;
     }
     if (str_is_int(word_value)){
+        #ifdef CLEKS_LEX_INTEGER
         Cleks_append_token(tokens, TOKEN_INT, word_value);
+        #endif // CLEKS_LEX_INTEGER
     }
     else if (str_is_float(word_value)){
+        #ifdef CLEKS_LEX_FLOATS
         Cleks_append_token(tokens, TOKEN_FLOAT, word_value);
+        #endif // CLEKS_LEX_FLOATS
     }
     else {
         Cleks_append_token(tokens, TOKEN_WORD, word_value);
