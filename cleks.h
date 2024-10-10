@@ -238,16 +238,16 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens)
     if (str_is_int(word_value)){
         #ifdef CLEKS_LEX_INTEGER
         Cleks_append_token(tokens, TOKEN_INT, word_value);
+        return 0;
         #endif // CLEKS_LEX_INTEGER
     }
     else if (str_is_float(word_value)){
         #ifdef CLEKS_LEX_FLOATS
         Cleks_append_token(tokens, TOKEN_FLOAT, word_value);
+        return 0;
         #endif // CLEKS_LEX_FLOATS
     }
-    else {
-        Cleks_append_token(tokens, TOKEN_WORD, word_value);
-    }
+    Cleks_append_token(tokens, TOKEN_WORD, word_value);
     return 0;
 }
 
