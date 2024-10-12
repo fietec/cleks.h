@@ -33,23 +33,12 @@ char* read_entire_file(char *file_path)
     return content;
 }
 
-#include "./templates/cleks_json_template.h" // we use include the definitions and use them below
+#include "./templates/cleks_json_template.h" // we use include the definitions and use the CleksJsonConfig below
 
 int main(void)
 {
-    CleksConfig json_config = {
-        .default_tokens = CleksDefaultTokenConfig,
-        .default_token_count = DEFAULT_TOKEN_COUNT,
-        .custom_tokens = JsonTokens,
-        .custom_token_count = CLEKS_ARR_LEN(JsonTokens),
-        .whitespaces = JsonWhitespaces,
-        .string_delimters = JsonStringDelimeters,
-        .comment_delimeters = JsonCommentDelimeters,
-        .comment_delimeter_count = CLEKS_ARR_LEN(JsonCommentDelimeters),
-        .token_mask = JsonTokenMask
-    };
     char *buffer = read_entire_file("testing.json");
-    CleksTokens* tokens = Cleks_lex(buffer, strlen(buffer), json_config);
+    CleksTokens* tokens = Cleks_lex(buffer, strlen(buffer), CleksJsonConfig);
     Cleks_print_tokens(tokens);
     Cleks_free_tokens(tokens);
 
