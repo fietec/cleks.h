@@ -1,6 +1,6 @@
 # Cleks Lexer Library Documentation
 
-**Cleks** is a configurable lexer library designed to tokenize strings based on user-defined rules for languages, data formats, or custom syntaxes.
+**Cleks** is a configurable header-only lexer library designed to tokenize strings based on user-defined rules for languages, data formats, or custom syntaxes (all written in c, or course).
 
 ## Table of Contents
 - [Installation](#installation)
@@ -20,7 +20,7 @@
 
 ## Installation
 
-1. Clone or download the **Cleks** repository.
+1. Download `cleks.h` or clone the repository for all templates and test programs
 2. Include `cleks.h` in your C project:
 
 ```c
@@ -31,7 +31,7 @@
 
 Cleks allows full customization of the lexer by setting up a configuration (CleksConfig) struct. This struct defines the following:
 
-- Predefined tokens like TOKEN_STRING, TOKEN_INT, etc.
+- Predefined tokens like `TOKEN_STRING`, `TOKEN_INT`, etc.
 - Custom tokens for your own specific symbols or words.
 - Flags for enabling or disabling certain types of token parsing.
 - Comment delimiters for ignoring parts of the input as comments.
@@ -51,9 +51,6 @@ The following tokens are predefined by default:
 - `TOKEN_WORD`: Matches general words that are not strings or numbers.
 - `TOKEN_INT`: Matches integer numbers.
 - `TOKEN_FLOAT`: Matches floating-point numbers.
-
-You can disable parsing of numbers by setting specific flags in the config (e.g., `CLEKS_NO_INTEGERS`).
-Custom Tokens
 
 You can define your own custom tokens using `CleksTokenConfig`. Custom tokens can match specific symbols or reserved words.
 
@@ -105,7 +102,7 @@ To use a template, include the corresponding file:
 
 This file will automatically set up the necessary token configuration, comment delimiters, and flags.
 
-Here’s a basic example to lex a JSON string using the default config:
+Here’s a basic example to lex a JSON string using the default JSON config:
 
 ```c
 
