@@ -31,10 +31,10 @@
 
 Cleks allows full customization of the lexer by setting up a configuration (CleksConfig) struct. This struct defines the following:
 
-    Predefined tokens like TOKEN_STRING, TOKEN_INT, etc.
-    Custom tokens for your own specific symbols or words.
-    Flags for enabling or disabling certain types of token parsing.
-    Comment delimiters for ignoring parts of the input as comments.
+- Predefined tokens like TOKEN_STRING, TOKEN_INT, etc.
+- Custom tokens for your own specific symbols or words.
+- Flags for enabling or disabling certain types of token parsing.
+- Comment delimiters for ignoring parts of the input as comments.
 
 ### Token Configuration
 
@@ -47,10 +47,10 @@ Tokens are defined in two ways:
 
 The following tokens are predefined by default:
 
-    `TOKEN_STRING`: Matches quoted string literals.
-    `TOKEN_WORD`: Matches general words that are not strings or numbers.
-    `TOKEN_INT`: Matches integer numbers.
-    `TOKEN_FLOAT`: Matches floating-point numbers.
+- `TOKEN_STRING`: Matches quoted string literals.
+- `TOKEN_WORD`: Matches general words that are not strings or numbers.
+- `TOKEN_INT`: Matches integer numbers.
+- `TOKEN_FLOAT`: Matches floating-point numbers.
 
 You can disable parsing of numbers by setting specific flags in the config (e.g., `CLEKS_NO_INTEGERS`).
 Custom Tokens
@@ -80,9 +80,9 @@ static CleksTokenConfig JsonTokens[] = {
 
 Flags allow you to control which types of tokens are parsed. You can combine them using bitwise OR (|).
 
-    CLEKS_DEFAULT: Default behavior.
-    CLEKS_NO_INTEGERS: Disables parsing of integers.
-    CLEKS_NO_FLOATS: Disables parsing of floats.
+- `CLEKS_DEFAULT`: Default behavior.
+- `CLEKS_NO_INTEGERS`: Disables parsing of integers.
+- `CLEKS_NO_FLOATS`: Disables parsing of floats.
 
 ### Comment Delimiters
 
@@ -200,19 +200,19 @@ typedef struct {
 ```
 
 ### Functions
-    ```c
-    CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
-    Tokenizes the input buffer according to the given config.
+```c
+CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
+Tokenizes the input buffer according to the given config.
 
-    void Cleks_free_tokens(CleksTokens *tokens)
-    Frees all memory associated with the tokens structure.
+void Cleks_free_tokens(CleksTokens *tokens)
+Frees all memory associated with the tokens structure.
 
-    void Cleks_print_tokens(CleksTokens *tokens)
-    Prints all tokens in a human-readable format.
+void Cleks_print_tokens(CleksTokens *tokens)
+Prints all tokens in a human-readable format.
 
-    void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value)
-    Appends a token of a given type to the tokens list.
-    ```
+void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value)
+Appends a token of a given type to the tokens list.
+```
 
 ## License
 
