@@ -12,7 +12,7 @@
 #define CLEKS_LEX_INTEGER // detect integers
 #define CLEKS_LEX_FLOATS  // detect floats
 
-#define CLEKS_PRINT_ID true // enable printing by cleks_info and cleks_debug
+#define CLEKS_PRINT_ID false // enable printing by cleks_info and cleks_debug
 
 // all the known tokens
 typedef enum{
@@ -108,7 +108,7 @@ const char const StringDelimeters[] = {'"'};
 const char const Whitespaces[] = {' ', '\n'};
 
 // strings that define a comment
-const char* const Comments[] = {"//", "#"};
+const char* const Comments[] = {};
 
 /* Internal definitions */
 
@@ -312,8 +312,7 @@ int Cleks_lex_comment(Clekser *clekser)
         const char *del = Comments[i];
         bool equals = true;
         size_t temp_index = clekser->index;
-        for (size_t j=0; j<strlen(del); ++j){
-            temp_index += j;
+        for (size_t j=0; j<strlen(del); ++j, ++temp_index){
             if (clekser->buffer[temp_index] != del[j]){
                 equals = false;
                 break;
