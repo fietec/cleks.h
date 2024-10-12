@@ -27,6 +27,7 @@ typedef enum{
     #endif // CLEKS_LEX_FLOATS
 
     // custom tokens
+    TOKEN_NULL,
     TOKEN_MAP_OPEN,
     TOKEN_MAP_CLOSE,
     TOKEN_ARRAY_OPEN,
@@ -48,6 +49,7 @@ const char* const TokenStrings[] = {
     [TOKEN_FLOAT] = "Word: float",
     #endif // CLEKS_LEX_FLOATS
     [TOKEN_WORD] = "Word: unknown",
+    [TOKEN_NULL] = "Word: null",
     [TOKEN_STRING] = "String",
     [TOKEN_MAP_OPEN] = "Symbol: {",
     [TOKEN_MAP_CLOSE] = "Symbol: }",
@@ -76,6 +78,7 @@ const char const Symbols[] = {
     #endif // CLEKS_LEX_INTEGER
     #ifdef CLEKS_LEX_FLOATS
     [TOKEN_FLOAT] = '\0',
+    [TOKEN_NULL] = '\0',
     #endif // CLEKS_LEX_FLOATS
 };
 
@@ -84,6 +87,7 @@ const char* const Words[] = {
     [TOKEN_WORD] = "", // has to be empty
     [TOKEN_TRUE] = "true",
     [TOKEN_FALSE] = "false",
+    [TOKEN_NULL] = "null",
 
     // set non-word tokens to ""
     #ifdef CLEKS_LEX_INTEGER
