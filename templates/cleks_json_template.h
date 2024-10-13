@@ -14,7 +14,7 @@ enum JsonTokens{
     JSON_NULL
 };
 
-static CleksTokenConfig JsonTokens[] = {
+static CleksTokenConfig JsonTokenConfig[] = {
     [JSON_MAP_OPEN] = {"JsonMapOpen: '{'" , "", '{'},
     [JSON_MAP_CLOSE] = {"JsonMapClose: '}'", "", '}'},
     [JSON_ARRAY_OPEN] = {"JsonArrayOpen: '['", "", '['},
@@ -26,11 +26,11 @@ static CleksTokenConfig JsonTokens[] = {
     [JSON_NULL] = {"JsonNull: null", "null", '\0'}
 };
 
-CleksConfig CleksJsonConfig = {
+CleksConfig JsonConfig = {
     .default_tokens = CleksDefaultTokenConfig,
     .default_token_count = DEFAULT_TOKEN_COUNT,
-    .custom_tokens = JsonTokens,
-    .custom_token_count = CLEKS_ARR_LEN(JsonTokens),
+    .custom_tokens = JsonTokenConfig,
+    .custom_token_count = CLEKS_ARR_LEN(JsonTokenConfig),
     .whitespaces = " \n",
     .string_delimters = "\"",
     .comment_delimeters = NULL,

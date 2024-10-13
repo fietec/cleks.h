@@ -1,6 +1,19 @@
 #ifndef _CLEKS_H
 #define _CLEKS_H
 
+/*
+
+          _      _          _     
+         | |    | |        | |    
+      ___| | ___| | _____  | |__  
+     / __| |/ _ \ |/ / __| | '_ \ 
+    | (__| |  __/   <\__ \_| | | |
+     \___|_|\___|_|\_\___(_)_| |_|    (by Constantijn de Meer)
+                                  
+                              
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,11 +23,13 @@
 
 /* Customize here */
 
+#define CLEKS_PRINT_ID false // enable printing by cleks_info and cleks_debug
+
+/* Internal definitions */
+
 #define CLEKS_DEFAULT     0x0 // all default features enabled
 #define CLEKS_NO_INTEGERS 0x1 // integers are not recognized by the lexer
 #define CLEKS_NO_FLOATS   0x2 // floats are not recognized by the lexer
-
-#define CLEKS_PRINT_ID false // enable printing by cleks_info and cleks_debug
 
 typedef enum{
     TOKEN_STRING,       // everthing within string delimeters
@@ -50,7 +65,6 @@ typedef struct{
     uint8_t token_mask;                    // a mask for customizing the lexing behavior (so far: CLEKS_NO_INTEGERS, CLEKS_NO_FLOATS). The default is CLEKS_DEFAULT
 } CleksConfig;    
 
-/* Internal definitions */
 
 typedef size_t CleksTokenType;
 typedef struct{
