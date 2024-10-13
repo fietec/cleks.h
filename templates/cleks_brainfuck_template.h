@@ -28,7 +28,7 @@ static CleksTokenConfig BrainfuckTokenConfig[] = {
     When using the tokens, simply ignore these tokens and everything should behave as usual.
 */
 
-const char* const BrainfuckCommentDelimeters[] = {}; 
+CleksComment BrainfuckComments[] = {};
 
 CleksConfig BrainfuckConfig = {
     .default_tokens = CleksDefaultTokenConfig,
@@ -37,7 +37,7 @@ CleksConfig BrainfuckConfig = {
     .custom_token_count = CLEKS_ARR_LEN(BrainfuckTokenConfig),
     .whitespaces = "",
     .string_delimters = "",
-    .comment_delimeters = BrainfuckCommentDelimeters,
-    .comment_delimeter_count = CLEKS_ARR_LEN(BrainfuckCommentDelimeters),
+    .comments = BrainfuckComments,
+    .comment_count = CLEKS_ARR_LEN(BrainfuckComments),
     .token_mask = CLEKS_DEFAULT
 };

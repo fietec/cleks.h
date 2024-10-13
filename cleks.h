@@ -23,7 +23,7 @@
 
 /* Customize here */
 
-#define CLEKS_PRINT_ID false // enable printing by cleks_info and cleks_debug
+#define CLEKS_PRINT_ID true // enable printing by cleks_info and cleks_debug
 
 /* Internal definitions */
 
@@ -52,16 +52,21 @@ static CleksTokenConfig CleksDefaultTokenConfig[] = {
     [TOKEN_FLOAT] = {"Float", "", '\0'}
 };
 
+typedef struct{
+    const char* const start_del;
+    const char* const end_del;
+} CleksComment;
+
 // a structure enabling high customizability of the lexer
 typedef struct{
     CleksTokenConfig* default_tokens;      // it is highly encouraged to use CleksDefaultTokenConfig for this, overwise the lexing may fail.
     size_t default_token_count;            // when using CleksDefaultTokenConfig, provide DEFAULT_TOKEN_COUNT
     CleksTokenConfig* custom_tokens;       // provided your custom tokens
-    size_t custom_token_count;             // the number of custom tokens (tipp: use CLEKS_ARR_LEN)
+    size_t custom_token_count;             // the number of custom tokens (tip: use CLEKS_ARR_LEN)
     const char* const  whitespaces;        // a string with each character defining a whitespace
     const char* const  string_delimters;   // a string with each character defining a string delimeter
-    const char* const* comment_delimeters; // an array of strings which indicate a comment until the next new-line
-    size_t comment_delimeter_count;        // the number of comment delimeters
+    CleksComment *comments;                // provide your comments, each with its start and end delimeter
+    size_t comment_count;                  // the number of comments (tip: use CLEKS_ARR_LEN)
     uint8_t token_mask;                    // a mask for customizing the lexing behavior (so far: CLEKS_NO_INTEGERS, CLEKS_NO_FLOATS). The default is CLEKS_DEFAULT
 } CleksConfig;    
 
@@ -266,25 +271,41 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens, CleksConfig config)
 int Cleks_lex_comment(Clekser *clekser, CleksConfig config)
 {
     CLEKS_ASSERT(clekser != NULL, "Invalid arguments: clekser: %p!", clekser);
-    for (size_t i=0; i<config.comment_delimeter_count; ++i){
-        const char *del = config.comment_delimeters[i];
+    for (size_t i=0; i<config.comment_count; ++i){
+        const char *start_del = config.comments[i].start_del;
+        // cleks_debug("comparing with %s", start_del);
         bool equals = true;
         size_t temp_index = clekser->index;
-        for (size_t j=0; j<strlen(del); ++j, ++temp_index){
-            if (clekser->buffer[temp_index] != del[j]){
+        for (size_t j=0; j<strlen(start_del); ++j, ++temp_index){
+            if (clekser->buffer[temp_index] != start_del[j]){
                 equals = false;
                 break;
             }
         }
-        // skip until end of line
-        if (equals){
-            char c;
-            while ((c = clekser->buffer[temp_index]) != '\n' && temp_index < clekser->buffer_size){
-                temp_index ++;
+        // skip until end_del
+        if (!equals) continue;
+        const char* end_del = config.comments[i].end_del;
+        size_t del_size = strlen(end_del);
+        while (temp_index < clekser->buffer_size){
+            bool matches = true;
+            for (size_t j=0; j<del_size; ++j){
+                size_t ti = temp_index + j;
+                if (ti >= clekser->buffer_size){
+                    clekser->index = ti;
+                    return 0;
+                }
+                if (clekser->buffer[ti] != end_del[j]){
+                    matches = false;
+                    break;
+                }
             }
-            clekser->index = temp_index;
-            return 0;
+            if (matches){
+                clekser->index = temp_index+del_size-1;
+                return 0;
+            }
+            temp_index += 1;
         }
+        return 1;
     }
     return 1;
 }

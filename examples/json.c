@@ -1,4 +1,4 @@
-#include "cleks.h"
+#include "../cleks.h"
 #include <sys/stat.h>
 
 /* This is an example of how to use cleks.h by reading a file's content and lexing it. 

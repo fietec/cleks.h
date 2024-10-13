@@ -1,4 +1,4 @@
-#include "cleks.h"
+#include "../cleks.h"
 
 enum TestTokens{
     TEST_LT,
@@ -22,7 +22,11 @@ CleksTokenConfig TestTokenConfig[] = {
     [TEST_PRINT] = {"Function-Print", "print", '\0'}
 };
 
-const char* const TestCommentDelimeters[] = {"//", "#"};
+CleksComment TestComments[] = {
+    {"//", "\n"},
+    {"#", "\n"},
+    {"/*", "*/"}
+};
 
 int main(void)
 {
@@ -33,12 +37,12 @@ int main(void)
         .custom_token_count = CLEKS_ARR_LEN(TestTokenConfig),
         .whitespaces = " \n",
         .string_delimters = "\"'",
-        .comment_delimeters = TestCommentDelimeters,
-        .comment_delimeter_count = CLEKS_ARR_LEN(TestCommentDelimeters),
+        .comments = TestComments,
+        .comment_count = CLEKS_ARR_LEN(TestComments),
         .token_mask = CLEKS_DEFAULT
     };
 
-    char buffer[] = "if(x < 2) then print('x+1\")";
+    char buffer[] = "/*if(x <*/ 2) //then \nprint('x+1\")";
     CleksTokens *tokens = Cleks_lex(buffer, strlen(buffer), TestConfig);
     Cleks_print_tokens(tokens);
     Cleks_free_tokens(tokens);
