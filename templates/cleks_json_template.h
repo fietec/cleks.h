@@ -26,11 +26,7 @@ static CleksTokenConfig JsonTokenConfig[] = {
     [JSON_NULL] = {"JsonNull: null", "null", '\0'}
 };
 
-CleksComment JsonComments[] = {
-    {"//", "\n"},
-    {"#", "\n"},
-    {"/*", "*/"}
-};
+CleksComment JsonComments[] = {};
 
 CleksConfig JsonConfig = {
     .default_tokens = CleksDefaultTokenConfig,

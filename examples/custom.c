@@ -42,7 +42,7 @@ int main(void)
         .token_mask = CLEKS_DEFAULT
     };
 
-    char buffer[] = "/*if(x <*/ 2) //then \nprint('x+1\")";
+    char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print('x+1\")";
     CleksTokens *tokens = Cleks_lex(buffer, strlen(buffer), TestConfig);
     Cleks_print_tokens(tokens);
     Cleks_free_tokens(tokens);
