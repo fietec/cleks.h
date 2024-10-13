@@ -60,7 +60,7 @@ typedef struct{
     size_t custom_token_count;             // the number of custom tokens (tipp: use CLEKS_ARR_LEN)
     const char* const  whitespaces;        // a string with each character defining a whitespace
     const char* const  string_delimters;   // a string with each character defining a string delimeter
-    const char* const* comment_delimeters; // an array of characters which indicates a comment until the next new-line
+    const char* const* comment_delimeters; // an array of strings which indicate a comment until the next new-line
     size_t comment_delimeter_count;        // the number of comment delimeters
     uint8_t token_mask;                    // a mask for customizing the lexing behavior (so far: CLEKS_NO_INTEGERS, CLEKS_NO_FLOATS). The default is CLEKS_DEFAULT
 } CleksConfig;    

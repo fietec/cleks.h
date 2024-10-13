@@ -26,6 +26,8 @@ static CleksTokenConfig JsonTokenConfig[] = {
     [JSON_NULL] = {"JsonNull: null", "null", '\0'}
 };
 
+const char* const JsonCommentDelimeters[] = {};
+
 CleksConfig JsonConfig = {
     .default_tokens = CleksDefaultTokenConfig,
     .default_token_count = DEFAULT_TOKEN_COUNT,
@@ -33,8 +35,8 @@ CleksConfig JsonConfig = {
     .custom_token_count = CLEKS_ARR_LEN(JsonTokenConfig),
     .whitespaces = " \n",
     .string_delimters = "\"",
-    .comment_delimeters = NULL,
-    .comment_delimeter_count = 0,
+    .comment_delimeters = JsonCommentDelimeters,
+    .comment_delimeter_count = CLEKS_ARR_LEN(JsonCommentDelimeters),
     .token_mask = CLEKS_DEFAULT
 };
 

@@ -33,7 +33,7 @@ char* read_entire_file(char *file_path)
     return content;
 }
 
-#include "./templates/cleks_json_template.h" // we include the definitions and use the JsonConfig below
+#include "../templates/cleks_json_template.h" // we include the definitions and use the JsonConfig below
 
 int main(void)
 {
@@ -41,6 +41,5 @@ int main(void)
     CleksTokens* tokens = Cleks_lex(buffer, strlen(buffer), JsonConfig);
     Cleks_print_tokens(tokens);
     Cleks_free_tokens(tokens);
-
     return 0;
 }

@@ -27,6 +27,9 @@ static CleksTokenConfig BrainfuckTokenConfig[] = {
     Cleks does not support this feature directly, yet every comment will be lexed as a 'TOKEN_WORD'.
     When using the tokens, simply ignore these tokens and everything should behave as usual.
 */
+
+const char* const BrainfuckCommentDelimeters[] = {}; 
+
 CleksConfig BrainfuckConfig = {
     .default_tokens = CleksDefaultTokenConfig,
     .default_token_count = DEFAULT_TOKEN_COUNT,
@@ -34,6 +37,7 @@ CleksConfig BrainfuckConfig = {
     .custom_token_count = CLEKS_ARR_LEN(BrainfuckTokenConfig),
     .whitespaces = "",
     .string_delimters = "",
-    .comment_delimeters = NULL,
-    .comment_delimeter_count = 0
+    .comment_delimeters = BrainfuckCommentDelimeters,
+    .comment_delimeter_count = CLEKS_ARR_LEN(BrainfuckCommentDelimeters),
+    .token_mask = CLEKS_DEFAULT
 };
