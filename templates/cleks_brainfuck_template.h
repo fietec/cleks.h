@@ -1,3 +1,5 @@
+#ifndef _CLEKS_BRAINFUCK_TEMPLATE
+#define _CLEKS_BRAINFUCK_TEMPLATE
 #include "../cleks.h"
 
 enum BrainfuckTokens{
@@ -39,5 +41,7 @@ CleksConfig BrainfuckConfig = {
     .string_delimters = "",
     .comments = BrainfuckComments,
     .comment_count = CLEKS_ARR_LEN(BrainfuckComments),
-    .token_mask = CLEKS_DEFAULT
+    .token_mask = CLEKS_NO_INTEGERS | CLEKS_NO_FLOATS
 };
+
+#endif // _CLEKS_BRAINFUCK_TEMPLATE
