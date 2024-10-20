@@ -11,7 +11,7 @@
         - [Comments](#comments)
         - [Flags](#token-mask)
     - [Templates](#templates)
-- [Example](#examples)
+- [Examples](#examples)
     - [Custom Example](#custom-example)
     - [Template Example](#template-example)
 - [Function API](#api)
