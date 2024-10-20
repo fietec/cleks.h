@@ -1,214 +1,279 @@
-# Cleks Lexer Library Documentation
+# Cleks.h Documentation
 
-**Cleks** is a configurable header-only lexer library designed to tokenize strings based on user-defined rules for languages, data formats, or custom syntaxes (all written in c, or course).
+**Cleks** is a highly configurable header-only c lexer library capable of tokenizing strings based on user-defined rules for any language, data format, or custom syntax.
 
 ## Table of Contents
 - [Installation](#installation)
-- [Configuration](#configuration)
-  - [Token Configuration](#token-configuration)
-  - [Predefined Tokens](#predefined-tokens)
-  - [Custom Tokens](#custom-tokens)
-  - [Flags](#flags)
-  - [Comment Delimiters](#comment-delimiters)
-- [Using Templates](#using-templates)
-- [Usage](#usage)
-  - [Basic Example](#basic-example)
-  - [Custom Tokenization Example](#custom-tokenization-example)
-- [API](#api)
-  - [CleksConfig Structure](#cleksconfig-structure)
-  - [Functions](#functions)
-
+- [How to use](#how-to-use)
+    - [Default Tokens](#default-tokens)
+    - [Configuration](#configuration)
+        - [Custom Tokens](#custom-tokens)
+        - [Comments](#comments)
+        - [Flags](#token-mask)
+    - [Templates](#templates)
+- [Example](#examples)
+    - [Custom Example](#custom-example)
+    - [Template Example](#template-example)
+- [Function API](#api)
+- [License](#license)
+    
 ## Installation
 
-1. Download `cleks.h` or clone the repository for all templates and test programs
-2. Include `cleks.h` in your C project:
+1. Download `cleks.h` or clone the repository for all templates and examples.
+2. Include `cleks.h` in your project.
 
 ```c
 #include "cleks.h"
 ```
 
-## Configuration
+## How to use
 
-Cleks allows full customization of the lexer by setting up a configuration (CleksConfig) struct. This struct defines the following:
-
-- Predefined tokens like `TOKEN_STRING`, `TOKEN_INT`, etc.
-- Custom tokens for your own specific symbols or words.
-- Flags for enabling or disabling certain types of token parsing.
-- Comment delimiters for ignoring parts of the input as comments.
-
-### Token Configuration
-
-Tokens are defined in two ways:
-
-    Predefined tokens: Pre-included basic tokens like strings, words, integers, and floats.
-    Custom tokens: User-defined tokens for specific words or symbols.
-
-#### Predefined Tokens
-
-The following tokens are predefined by default:
-
-- `TOKEN_STRING`: Matches quoted string literals.
-- `TOKEN_WORD`: Matches general words that are not strings or numbers.
-- `TOKEN_INT`: Matches integer numbers.
-- `TOKEN_FLOAT`: Matches floating-point numbers.
-
-You can define your own custom tokens using `CleksTokenConfig`. Custom tokens can match specific symbols or reserved words.
-
-Example of adding custom tokens:
-
+To tokenize a string, use the `Cleks_lex` function:
 ```c
-
-enum JsonTokens {
-    JSON_MAP_OPEN,
-    JSON_MAP_CLOSE,
-    JSON_ARRAY_OPEN,
-    JSON_ARRAY_CLOSE
-};
-
-static CleksTokenConfig JsonTokens[] = {
-    [JSON_MAP_OPEN] = {"JsonMapOpen", "", '{'},
-    [JSON_MAP_CLOSE] = {"JsonMapClose", "", '}'},
-    [JSON_ARRAY_OPEN] = {"JsonArrayOpen", "", '['},
-    [JSON_ARRAY_CLOSE] = {"JsonArrayClose", "", ']'}
-};
+CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config);
 ```
-
-### Flags
-
-Flags allow you to control which types of tokens are parsed. You can combine them using bitwise OR (|).
-
-- `CLEKS_DEFAULT`: Default behavior.
-- `CLEKS_NO_INTEGERS`: Disables parsing of integers.
-- `CLEKS_NO_FLOATS`: Disables parsing of floats.
-
-### Comment Delimiters
-
-Define the comment delimiters to ignore comments in your input. Delimiters can currently only be single-line.
-
+This function takes a buffer and its size as an argument, together with a [`CleksConfig`](#configuration) struct.
+Based on the provided rules the lexer will allocate a `CleksTokens` structure, which is a dynamic array of `CleksToken`, each containing the `type`, being the id of the found token. The `value` field contains the string content for [default tokens](#default-tokens).
 ```c
-
-const char* const JsonCommentDelimeters[] = {"//", "#"};
+typedef size_t CleksTokenType;
+typedef struct{
+    CleksTokenType type;
+    char *value;
+} CleksToken;
 ```
+### Default Tokens
 
-### Using Templates
+**Cleks** defines four tokens by default with default ids:
 
-You can simplify configuration by using templates. Templates are predefined files that contain all necessary config data for specific purposes, such as JSON parsing.
+- ID=0: `TOKEN_STRING` -> a string was found (content in `CleksToken::value`) 
+- ID=1: `TOKEN_WORD` -> an unknown word has been found (content stored in `CleksToken::value`)
+- ID=2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
+- ID=3: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
 
-To use a template, include the corresponding file:
+Custom tokens therefore start with ID=4. This offset is also available through `DEFAULT_TOKEN_COUNT`.
+If you want to convert the id of a custom token to the id within the custom tokens (e.g. when creating custom tokens via a enum), check whether a token's id is not smaller than the amount of default tokens (meaning it is not a default token) and subtract the `DEFAULT_TOKEN_COUNT`.
 
+For this you can also use the macros which **Cleks** provides:
 ```c
-#include "./templates/cleks_json_template.h"
-```
-
-This file will automatically set up the necessary token configuration, comment delimiters, and flags.
-
-Here’s a basic example to lex a JSON string using the default JSON config:
-
-```c
-
-#include "cleks.h"
-#include "./templates/cleks_json_template.h"  // Using a template for JSON config
-
-int main(void) {
-    // Define the string to tokenize
-    char *json_string = "{\"name\": \"John\", \"age\": 25}";
-    
-    // Load the default JSON config from template
-    CleksConfig json_config = CleksJsonConfig;
-    
-    // Perform tokenization
-    CleksTokens* tokens = Cleks_lex(json_string, strlen(json_string), json_config);
-    
-    // Print the tokens
-    Cleks_print_tokens(tokens);
-    
-    // Free allocated tokens
-    Cleks_free_tokens(tokens);
-    
-    return 0;
+for (size_t i=0; i<tokens->size; ++i){
+    CleksToken token = tokens->items[i];
+    if (!cleks_is_default_token(token)){
+        size_t id = Cleks_get_custom_token_id(token);
+        // use this to index the custom tokens
+    }
 }
 ```
 
-### Custom Tokenization Example
+### Configuration
 
-Here’s an example using custom tokens for a new syntax:
-
+**Cleks** allows full customization of the lexer by using the `CleksConfig` struct.
 ```c
+typedef struct{
+    CleksTokenConfig* default_tokens;     
+    size_t default_token_count;           
+    CleksTokenConfig* custom_tokens;       
+    size_t custom_token_count;             
+    const char* const  whitespaces;        
+    const char* const  string_delimters;   
+    CleksComment *comments;                
+    size_t comment_count;                  
+    uint8_t token_mask;                  
+} CleksConfig; 
+```
+#### Field Documentation:
+- `default_tokens` - the default tokens of the lexer (always provide `CleksDefaultTokenConfig`)
+- `default_token_count` - the amount of default tokens (use `DEFAULT_TOKEN_COUNT`)
+- `custom_tokens` - an array of custom [`CleksTokenConfig`s](#custom-tokens)
+- `custom_token_count` - the amount of custom tokens (can be obtained via the `CLEKS_ARR_LEN` macro)
+- `whitespaces` - a string of characters for the lexer to skip
+- `string_delimeters` - a string of characters defining the beginning and end of a string
+- `comments` - an array of [`CleksComment`s](#comments) to define comment beginnings and ends
+- `comment_count` - the amount of comments
+- `token_mask` - a single-byte mask containing further lexing rules (`CLEKS_DEFAULT` as default)
 
+#### Custom Tokens
+To define custom tokens, provide an array of `CleksTokenConfig`s.
+```c
+typedef struct{
+    char* print_string; // the string to print for Cleks_print_tokens
+    char* word;         // the string defining a word, "" for non-words
+    char  symbol;       // the character defining a symbol, '\0' non-symbols
+} CleksTokenConfig;
+```
+For example:
+```c
+CleksTokenConfig TestTokenConfig[] = {
+    {"If", "if", '\0'},
+    {"Left-Bracket", "", '('},
+    {"Right-Bracket", "", ')'}
+};
+```
+
+#### Comments
+To define custom comments, provide an array of `CleksComment`s.
+```c
+typedef struct{
+    const char* const start_del;  // the string defining a comment's beginning
+    const char* const end_del;    // the string defining a comment's end
+} CleksComment;
+```
+For example:
+```c
+CleksComment TestComments[] = {
+    {"//", "\n"},
+    {"#", "\n"},
+    {"/*", "*/"}
+};
+```
+
+#### Token Mask
+This mask is used to further customize the behaviour of the lexer.
+
+Currently these flags are available:
+- `CLEKS_DEFAULT` - the default behaviour
+- `CLEKS_NO_INTEGERS` - don't recognize integers, instead use `TOKEN_WORD`
+- `CLEKS_NO_FLOATS` - dont recognize floats, insted use `TOKEN_WORD`
+
+You can combine these flags by using Bitwise-OR:
+
+`.token_mask = CLEKS_NO_INTEGERS | CLEKS_NO_FLOATS`
+
+### Templates
+**Cleks** provides several templates for well-known formats, such as *JSON* and *Brainfuck*.
+Templates can be found in the `templates` directory in the repository.
+When [using a template](#template-example), there is no need of creating a CleksConfig by yourself.
+
+## Examples
+Here are a few examples of how to use **Cleks**: 
+### Custom Example
+```c
 #include "cleks.h"
 
-// Custom tokens
-enum MyTokens {
-    MY_TOKEN_IF,
-    MY_TOKEN_THEN,
-    MY_TOKEN_PRINT,
-    MY_TOKEN_LEFT_BRACKET,
-    MY_TOKEN_RIGHT_BRACKET
+// to make life a lot easier
+enum TestTokens{
+    TEST_LT,
+    TEST_GT,
+    TEST_EQ,
+    TEST_IF,
+    TEST_THEN,
+    TEST_LB,
+    TEST_RB,
+    TEST_PRINT
 };
 
-static CleksTokenConfig MyTokens[] = {
-    [MY_TOKEN_IF] = {"IfKeyword", "if", '\0'},
-    [MY_TOKEN_THEN] = {"ThenKeyword", "then", '\0'},
-    [MY_TOKEN_PRINT] = {"PrintKeyword", "print", '\0'},
-    [MY_TOKEN_LEFT_BRACKET] = {"LBracketSymbol", "", '('},
-    [MY_TOKEN_RIGHT_BRACKET] = {"RBracketSymbol", "", ')'}
+// define our custom tokens
+CleksTokenConfig TestTokenConfig[] = {
+    [TEST_LT] = {.print_string = "Less-Than", .word="", .symbol='<'},
+    [TEST_GT] = {"Greater-Than", "", '>'},
+    [TEST_EQ] = {"Equals", "", '='},
+    [TEST_IF] = {"If", "if", '\0'},
+    [TEST_THEN] = {"Then", "then", '\0'},
+    [TEST_LB] = {"Left-Bracket", "", '('},
+    [TEST_RB] = {"Right-Bracket", "", ')'},
+    [TEST_PRINT] = {"Function-Print", "print", '\0'}
 };
 
-int main(void) {
-    char *code = "if x > 10 then print(x)";
+// define our custom comments
+CleksComment TestComments[] = {
+    {"//", "\n"},  // single-line comment from "//" to the end of the line
+    {"#", "\n"},   // single-line comment form "#" to the end of the line
+    {"/*", "*/"}   // multi-line comment from "/*" to "*/"
+};
 
-    // Custom config
-    CleksConfig custom_config = {
+int main(void)
+{
+    CleksConfig TestConfig = {
         .default_tokens = CleksDefaultTokenConfig,
         .default_token_count = DEFAULT_TOKEN_COUNT,
-        .custom_tokens = MyTokens,
-        .custom_token_count = CLEKS_ARR_LEN(MyTokens),
-        .whitespaces = " \n",
-        .string_delimters = "\"",
-        .comment_delimeters = NULL,
-        .comment_delimeter_count = 0,
+        .custom_tokens = TestTokenConfig,
+        .custom_token_count = CLEKS_ARR_LEN(TestTokenConfig),
+        .whitespaces = " \n",  // we skip ' ' and '\n'
+        .string_delimters = "\"'",  // '"' and ''' define a string
+        .comments = TestComments,
+        .comment_count = CLEKS_ARR_LEN(TestComments),
         .token_mask = CLEKS_DEFAULT
     };
-    
-    CleksTokens* tokens = Cleks_lex(code, strlen(code), custom_config);
-    Cleks_print_tokens(tokens);
-    Cleks_free_tokens(tokens);
-    
+
+    char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print('x+1\")"; // our test buffer
+    CleksTokens *tokens = Cleks_lex(buffer, strlen(buffer), TestConfig); // lex our buffer
+    Cleks_print_tokens(tokens);  // print the found tokens using their `print_string` value
+    Cleks_free_tokens(tokens);  // free the allocated memory
     return 0;
 }
 ```
-
-## API
-### CleksConfig Structure
-
-```c
-
-typedef struct {
-    CleksTokenConfig* default_tokens;       // Default token set (strings, words, numbers)
-    size_t default_token_count;             // Number of default tokens
-    CleksTokenConfig* custom_tokens;        // User-defined custom tokens
-    size_t custom_token_count;              // Number of custom tokens
-    const char* const whitespaces;          // Whitespace characters
-    const char* const string_delimters;     // String delimiters (e.g., '"')
-    const char* const* comment_delimeters;  // Comment delimiters (e.g., {"//", "/*", NULL})
-    size_t comment_delimeter_count;         // Number of comment delimiters
-    uint8_t token_mask;                     // Flags for parsing options
-} CleksConfig;
+This will generate the following output:
+```
+Token count: 11
+  Token: If
+  Token: Left-Bracket
+  Token: Word "x"
+  Token: Less-Than
+  Token: Integer "2"
+  Token: Right-Bracket
+  Token: Then
+  Token: Function-Print
+  Token: Left-Bracket
+  Token: String "x+1"
+  Token: Right-Bracket
 ```
 
-### Functions
+### Template Example
+In this example we use the template for *JSON*.
 ```c
+#include "cleks.h"
+#include "templates/cleks_json_template.h" // include the template
+
+int main(void)
+{
+    char buffer[] = "{\"hi\": [1, 2, 3], \"by\": [true, false, null]}"; // our test buffer
+    CleksTokens* tokens = Cleks_lex(buffer, strlen(buffer), JsonConfig); // use the JsonConfig provided by the template
+    Cleks_print_tokens(tokens);
+    Cleks_free_tokens(tokens);
+    return 0;
+}
+```
+This will generate the following output:
+```
+Token count: 21
+  Token: JsonMapOpen: '{'
+  Token: String "hi"
+  Token: JsonMapSep: ':'
+  Token: JsonArrayOpen: '['
+  Token: Integer "1"
+  Token: JsonIterSet: ','
+  Token: Integer "2"
+  Token: JsonIterSet: ','
+  Token: Integer "3"
+  Token: JsonArrayClose: ']'
+  Token: JsonIterSet: ','
+  Token: String "bye"
+  Token: JsonMapSep: ':'
+  Token: JsonArrayOpen: '['
+  Token: JsonTrue: true
+  Token: JsonIterSet: ','
+  Token: JsonFalse: false
+  Token: JsonIterSet: ','
+  Token: JsonNull: null
+  Token: JsonArrayClose: ']'
+  Token: JsonMapClose: '}'
+```
+## API
+```c
+// Tokenizes the input buffer according to the given config.
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
-Tokenizes the input buffer according to the given config.
 
+// Frees all memory associated with the tokens structure.
 void Cleks_free_tokens(CleksTokens *tokens)
-Frees all memory associated with the tokens structure.
 
+// Prints all tokens in a human-readable format.
 void Cleks_print_tokens(CleksTokens *tokens)
-Prints all tokens in a human-readable format.
 
+// Appends a token of a given type to the tokens list.
 void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value)
-Appends a token of a given type to the tokens list.
+// check if a token is a default token
+cleks_is_default_token(token)
+// returns custom-id of a token (type:int, negative for built-in tokens)
+Cleks_get_token(token)
 ```
 
 ## License
