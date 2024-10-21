@@ -100,6 +100,10 @@ typedef struct{
     char  symbol;       // the character defining a symbol, '\0' non-symbols
 } CleksTokenConfig;
 ```
+As can be seen above, there are two types of custom tokens, *WORDS* and *SYMBOLS*.
+- *SYMBOL*: a single character token (prioritized)
+- *WORD*: a multi-character string token
+
 For example:
 ```c
 CleksTokenConfig TestTokenConfig[] = {
@@ -225,7 +229,7 @@ In this example we use the template for *JSON*.
 
 int main(void)
 {
-    char buffer[] = "{\"hi\": [1, 2, 3], \"by\": [true, false, null]}"; // our test buffer
+    char buffer[] = "{\"nums\": [1, 2, 3], \"truth\": [true, false, null]}"; // our test buffer
     CleksTokens* tokens = Cleks_lex(buffer, strlen(buffer), JsonConfig); // use the JsonConfig provided by the template
     Cleks_print_tokens(tokens);
     Cleks_free_tokens(tokens);
@@ -236,7 +240,7 @@ This will generate the following output:
 ```
 Token count: 21
   Token: JsonMapOpen: '{'
-  Token: String "hi"
+  Token: String "nums"
   Token: JsonMapSep: ':'
   Token: JsonArrayOpen: '['
   Token: Integer "1"
@@ -246,7 +250,7 @@ Token count: 21
   Token: Integer "3"
   Token: JsonArrayClose: ']'
   Token: JsonIterSet: ','
-  Token: String "bye"
+  Token: String "truth"
   Token: JsonMapSep: ':'
   Token: JsonArrayOpen: '['
   Token: JsonTrue: true
