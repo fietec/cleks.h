@@ -27,6 +27,9 @@ static CleksTokenConfig JsonTokenConfig[] = {
 };
 
 CleksComment JsonComments[] = {};
+CleksString JsonStrings[] = {
+    {'"', '"'}
+};
 
 CleksConfig JsonConfig = {
     .default_tokens = CleksDefaultTokenConfig,
@@ -34,7 +37,8 @@ CleksConfig JsonConfig = {
     .custom_tokens = JsonTokenConfig,
     .custom_token_count = CLEKS_ARR_LEN(JsonTokenConfig),
     .whitespaces = " \n",
-    .string_delimters = "\"",
+    .strings = JsonStrings,
+    .strings_count = CLEKS_ARR_LEN(JsonStrings),
     .comments = JsonComments,
     .comment_count = CLEKS_ARR_LEN(JsonComments),
     .token_mask = CLEKS_DEFAULT

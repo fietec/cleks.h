@@ -23,7 +23,7 @@
 
 /* Customize here */
 
-#define CLEKS_PRINT_ID true // enable printing by cleks_info and cleks_debug
+#define CLEKS_PRINT_ID false // enable printing by cleks_info and cleks_debug
 
 /* Internal definitions */
 
@@ -83,12 +83,6 @@ typedef struct{
     char *value;
 } CleksToken;
 
-typedef enum{
-    CLEKS_P_NONE,
-    CLEKS_P_STRING,
-    CLEKS_P_WORD
-} CleksMode;
-
 typedef struct{
     CleksToken **items;
     size_t size;
@@ -99,7 +93,6 @@ typedef struct{
 typedef struct{
     char *buffer;
     size_t buffer_size;
-    CleksMode mode;
     size_t index;
 } Clekser;
 
@@ -209,7 +202,6 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens, CleksConfig config)
         if (Cleks_char_in_string_dels(c, config.strings, config.strings_count)==0 || Cleks_char_in_string(c, config.whitespaces)==0 || Cleks_char_to_token(c, config.custom_tokens, config.custom_token_count) != CLEKS_NOT_FOUND) break;
         clekser->index += 1;
     }
-    clekser->mode = CLEKS_P_NONE;
     for (size_t i=0; i<config.custom_token_count; ++i){
         if (strncmp(clekser->buffer + word_start, config.custom_tokens[i].word, clekser->index - word_start) == 0){
             // words match
@@ -239,7 +231,6 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens, CleksConfig config, 
     CLEKS_ASSERT(clekser != NULL && tokens != NULL, "Invalid Arguments: clekser=%p, tokens=%p", clekser, tokens);
     size_t str_start = clekser->index;
     char c;
-    cleks_debug("Searching for string end: %c", str_end_del);
     while (clekser->index < clekser->buffer_size){
         c = clekser->buffer[++(clekser->index)];
         CLEKS_ASSERT(c != '\0', "[PARSING] Unclosed string delimeters at index %u!", str_start);
@@ -279,8 +270,6 @@ int Cleks_lex_string(Clekser *clekser, CleksTokens *tokens, CleksConfig config, 
         iB++;   
         iS++;
     }
-    clekser->mode = CLEKS_P_NONE;
-    cleks_debug("Found string: \"%s\"", str_value);
     Cleks_append_token(tokens, TOKEN_STRING, str_value);
     return 0;
 }
@@ -290,7 +279,6 @@ int Cleks_lex_comment(Clekser *clekser, CleksConfig config)
     CLEKS_ASSERT(clekser != NULL, "Invalid arguments: clekser: %p!", clekser);
     for (size_t i=0; i<config.comment_count; ++i){
         const char *start_del = config.comments[i].start_del;
-        // cleks_debug("comparing with %s", start_del);
         bool equals = true;
         size_t temp_index = clekser->index;
         for (size_t j=0; j<strlen(start_del); ++j, ++temp_index){
@@ -330,54 +318,37 @@ int Cleks_lex_comment(Clekser *clekser, CleksConfig config)
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
 {
     CLEKS_ASSERT(buffer != NULL && buffer_size != 0, "Invalid arguments!"); 
-    Clekser clekser = {.buffer=buffer, .buffer_size=buffer_size, .mode = CLEKS_P_NONE, .index=0};
+    Clekser clekser = {.buffer=buffer, .buffer_size=buffer_size, .index=0};
     CleksTokens *tokens = Cleks_create_tokens(16, config);
     char c;
     while (clekser.index <= buffer_size && (c = buffer[clekser.index]) != '\0'){
-        switch (clekser.mode){
-            case CLEKS_P_NONE:{
-                int int_token;
-                bool string_found = false;
-                for (size_t i=0; i<config.strings_count; ++i){
-                    if (c == config.strings[i].start_del){
-                        cleks_debug("Found string start %c at %d", c, clekser.index);
-                        clekser.index += 1;
-                        if (Cleks_lex_string(&clekser, tokens, config, config.strings[i].end_del) == 1){
-                            Cleks_free_tokens(tokens);
-                            return NULL;
-                        }
-                        string_found = true;
-                        clekser.index += 1;
-                    }
-                }
-                if (string_found) continue;
-                if ((int_token = Cleks_char_to_token(c, config.custom_tokens, config.custom_token_count)) != CLEKS_NOT_FOUND){
-                    Cleks_append_token(tokens, (CleksTokenType) int_token, NULL);
-                    clekser.index += 1;
-                    continue;
-                }
-                else if (Cleks_char_in_string(c, config.whitespaces) == 0){
-                    clekser.index += 1;
-                    continue;
-                }
-                else if (Cleks_lex_comment(&clekser, config) == 0){
-                    break;
-                }
-                else{
-                    clekser.mode = CLEKS_P_WORD;
-                    continue;
-                }
-            };
-            case CLEKS_P_WORD:{
-                if (Cleks_lex_word(&clekser, tokens, config) == 1){
+        int int_token;
+        // try to lex string
+        bool string_found = false;
+        for (size_t i=0; i<config.strings_count; ++i){
+            if (c == config.strings[i].start_del){
+                clekser.index += 1;
+                if (Cleks_lex_string(&clekser, tokens, config, config.strings[i].end_del) == 1){
                     Cleks_free_tokens(tokens);
                     return NULL;
                 }
-                continue;
-            }break;
-            default:{
-                CLEKS_ASSERT(0, "[INTERNAL] Invalid parsing mode: %d!", clekser.mode);
+                string_found = true;
+                clekser.index += 1;
             }
+        }
+        if (string_found) continue;
+        // try to lex custom symbol
+        if ((int_token = Cleks_char_to_token(c, config.custom_tokens, config.custom_token_count)) != CLEKS_NOT_FOUND){
+            Cleks_append_token(tokens, (CleksTokenType) int_token, NULL);
+        }
+        // try to lex whitespace
+        else if (Cleks_char_in_string(c, config.whitespaces) == 0){}
+        // try to lex comment
+        else if (Cleks_lex_comment(&clekser, config) == 0){}
+        // try to lex word
+        else if (Cleks_lex_word(&clekser, tokens, config) == 1){
+            Cleks_free_tokens(tokens);
+            return NULL;
         }
         clekser.index += 1;
     }
