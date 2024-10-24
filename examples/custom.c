@@ -1,8 +1,8 @@
 #include "../cleks.h"
 
 enum TestTokens{
-    // TEST_LT,
-    // TEST_GT,
+    TEST_LT,
+    TEST_GT,
     TEST_EQ,
     TEST_IF,
     TEST_THEN,
@@ -12,8 +12,8 @@ enum TestTokens{
 };
 
 CleksTokenConfig TestTokenConfig[] = {
-    // [TEST_LT] = {"Less-Than", "", '<'},
-    // [TEST_GT] = {"Greater-Than", "", '>'},
+    [TEST_LT] = {"Less-Than", "", '<'},
+    [TEST_GT] = {"Greater-Than", "", '>'},
     [TEST_EQ] = {"Equals", "", '='},
     [TEST_IF] = {"If", "if", '\0'},
     [TEST_THEN] = {"Then", "then", '\0'},
@@ -30,7 +30,7 @@ CleksComment TestComments[] = {
 
 CleksString TestStrings[] = {
     {'"', '"'},
-    {'<', '>'}
+    {'[', ']'}
 };
 
 int main(void)
@@ -42,13 +42,13 @@ int main(void)
         .custom_token_count = CLEKS_ARR_LEN(TestTokenConfig),
         .whitespaces = " \n",
         .strings = TestStrings,
-        .strings_count = CLEKS_ARR_LEN(TestStrings),
+        .string_count = CLEKS_ARR_LEN(TestStrings),
         .comments = TestComments,
         .comment_count = CLEKS_ARR_LEN(TestComments),
         .token_mask = CLEKS_DEFAULT
     };
 
-    char buffer[] = "if(x = 2)/*this is a comment */ // this is also a comment \nthen print(\"x+1\"<hi there>)";
+    char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print(\"x+1\"[is greater than x by 1])";
     CleksTokens *tokens = Cleks_lex(buffer, strlen(buffer), TestConfig);
     Cleks_print_tokens(tokens);
     Cleks_free_tokens(tokens);

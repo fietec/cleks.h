@@ -33,7 +33,17 @@ To tokenize a string, use the `Cleks_lex` function:
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config);
 ```
 This function takes a buffer and its size as an argument, together with a [`CleksConfig`](#configuration) struct.
-Based on the provided rules the lexer will allocate a `CleksTokens` structure, which is a dynamic array of `CleksToken`, each containing the `type`, being the id of the found token. The `value` field contains the string content for [default tokens](#default-tokens).
+Based on the provided rules the lexer will allocate a `CleksTokens` structure, which is a dynamic array of `CleksToken`s. 
+```c
+typedef struct{
+    CleksToken **items;  // the array of CleksTokens
+    size_t size;         // the amount of tokens
+    size_t capacity;     // the token capacity
+    CleksConfig config;  // the CleksConfig struct provided by the user
+} CleksTokens;
+```
+Each token has a `type`, being the id of the found token and the `value` field which contains the string content for [default tokens](#default-tokens).
+
 ```c
 typedef size_t CleksTokenType;
 typedef struct{
@@ -184,6 +194,12 @@ CleksComment TestComments[] = {
     {"/*", "*/"}   // multi-line comment from "/*" to "*/"
 };
 
+// define our custom strings
+CleksString TestStrings[] = {
+    {'"', '"'},    // string from '"' to '"'
+    {'[', ']'}     // string from '[' to ']'
+};
+
 int main(void)
 {
     CleksConfig TestConfig = {
@@ -192,13 +208,14 @@ int main(void)
         .custom_tokens = TestTokenConfig,
         .custom_token_count = CLEKS_ARR_LEN(TestTokenConfig),
         .whitespaces = " \n",  // we skip ' ' and '\n'
-        .string_delimters = "\"'",  // '"' and ''' define a string
+        .strings = TestStrings,
+        .string_count = CLEKS_ARR_LEN(TestStrings),
         .comments = TestComments,
         .comment_count = CLEKS_ARR_LEN(TestComments),
         .token_mask = CLEKS_DEFAULT
     };
 
-    char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print('x+1\")"; // our test buffer
+    char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print(\"x+1\"[is greater than x by 1])"; // our test buffer
     CleksTokens *tokens = Cleks_lex(buffer, strlen(buffer), TestConfig); // lex our buffer
     Cleks_print_tokens(tokens);  // print the found tokens using their `print_string` value
     Cleks_free_tokens(tokens);  // free the allocated memory
@@ -207,18 +224,19 @@ int main(void)
 ```
 This will generate the following output:
 ```
-Token count: 11
-  Token: If
-  Token: Left-Bracket
-  Token: Word "x"
-  Token: Less-Than
-  Token: Integer "2"
-  Token: Right-Bracket
-  Token: Then
-  Token: Function-Print
-  Token: Left-Bracket
-  Token: String "x+1"
-  Token: Right-Bracket
+Token count: 12
+  Token 7: If
+  Token 9: Left-Bracket
+  Token 1: Word "x"
+  Token 4: Less-Than
+  Token 2: Integer "2"
+  Token 10: Right-Bracket
+  Token 8: Then
+  Token 11: Function-Print
+  Token 9: Left-Bracket
+  Token 0: String "x+1"
+  Token 0: String "is greater than x by 1"
+  Token 10: Right-Bracket
 ```
 
 ### Template Example
@@ -239,27 +257,27 @@ int main(void)
 This will generate the following output:
 ```
 Token count: 21
-  Token: JsonMapOpen: '{'
-  Token: String "nums"
-  Token: JsonMapSep: ':'
-  Token: JsonArrayOpen: '['
-  Token: Integer "1"
-  Token: JsonIterSet: ','
-  Token: Integer "2"
-  Token: JsonIterSet: ','
-  Token: Integer "3"
-  Token: JsonArrayClose: ']'
-  Token: JsonIterSet: ','
-  Token: String "truth"
-  Token: JsonMapSep: ':'
-  Token: JsonArrayOpen: '['
-  Token: JsonTrue: true
-  Token: JsonIterSet: ','
-  Token: JsonFalse: false
-  Token: JsonIterSet: ','
-  Token: JsonNull: null
-  Token: JsonArrayClose: ']'
-  Token: JsonMapClose: '}'
+  Token  4: JsonMapOpen: '{'
+  Token  0: String "nums"
+  Token  8: JsonMapSep: ':'
+  Token  6: JsonArrayOpen: '['
+  Token  2: Integer "1"
+  Token  9: JsonIterSet: ','
+  Token  2: Integer "2"
+  Token  9: JsonIterSet: ','
+  Token  2: Integer "3"
+  Token  7: JsonArrayClose: ']'
+  Token  9: JsonIterSet: ','
+  Token  0: String "truth"
+  Token  8: JsonMapSep: ':'
+  Token  6: JsonArrayOpen: '['
+  Token 10: JsonTrue: true
+  Token  9: JsonIterSet: ','
+  Token 11: JsonFalse: false
+  Token  9: JsonIterSet: ','
+  Token 12: JsonNull: null
+  Token  7: JsonArrayClose: ']'
+  Token  5: JsonMapClose: '}'
 ```
 ## API
 ```c

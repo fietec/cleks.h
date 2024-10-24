@@ -31,6 +31,7 @@ static CleksTokenConfig BrainfuckTokenConfig[] = {
 */
 
 CleksComment BrainfuckComments[] = {};
+CleksString BrainfuckStrings[] = {};
 
 CleksConfig BrainfuckConfig = {
     .default_tokens = CleksDefaultTokenConfig,
@@ -38,7 +39,8 @@ CleksConfig BrainfuckConfig = {
     .custom_tokens = BrainfuckTokenConfig,
     .custom_token_count = CLEKS_ARR_LEN(BrainfuckTokenConfig),
     .whitespaces = "",
-    .string_delimters = "",
+    .strings = BrainfuckStrings,
+    .string_count = CLEKS_ARR_LEN(BrainfuckStrings),
     .comments = BrainfuckComments,
     .comment_count = CLEKS_ARR_LEN(BrainfuckComments),
     .token_mask = CLEKS_NO_INTEGERS | CLEKS_NO_FLOATS
