@@ -33,7 +33,7 @@ To tokenize a string, use the `Cleks_lex` function:
 ```c
 CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config);
 ```
-This function takes a buffer and its size as an argument, together with a [`CleksConfig`](#configuration) struct.
+This function takes a buffer and its size as arguments, together with a [`CleksConfig`](#configuration) struct.
 Based on the provided rules the lexer will allocate a `CleksTokens` structure, which is a dynamic array of `CleksToken`s. 
 ```c
 typedef struct{
@@ -54,17 +54,17 @@ typedef struct{
 ```
 ### Default Tokens
 
-**Cleks** defines four tokens by default with default ids:
+**Cleks** defines four tokens by default with respective ids:
 
 - ID=0: `TOKEN_STRING` -> a string was found (content in `CleksToken::value`) 
-- ID=1: `TOKEN_WORD` -> an unknown word has been found (content stored in `CleksToken::value`)
+- ID=1: `TOKEN_WORD` -> an unknown word was found (content stored in `CleksToken::value`)
 - ID=2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
 - ID=3: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
 
 Custom tokens therefore start with ID=4. This offset is also available through `DEFAULT_TOKEN_COUNT`.
 If you want to convert the id of a custom token to the id within the custom tokens (e.g. when creating custom tokens via a enum), check whether a token's id is not smaller than the amount of default tokens (meaning it is not a default token) and subtract the `DEFAULT_TOKEN_COUNT`.
 
-For this you can also use the macros which **Cleks** provides:
+For this you can also use the macros provided by **Cleks**:
 ```c
 for (size_t i=0; i<tokens->size; ++i){
     CleksToken token = tokens->items[i];
@@ -77,7 +77,7 @@ for (size_t i=0; i<tokens->size; ++i){
 
 ### Configuration
 
-**Cleks** allows full customization of the lexer by using the `CleksConfig` struct.
+**Cleks** allows full customization of the lexer via the `CleksConfig` struct.
 ```c
 typedef struct{
     CleksTokenConfig *default_tokens;      
@@ -301,22 +301,22 @@ Token count: 21
 ## API
 ```c
 // Tokenizes the input buffer according to the given config.
-CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
+CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config);
 
 // Frees all memory associated with the tokens structure.
-void Cleks_free_tokens(CleksTokens *tokens)
+void Cleks_free_tokens(CleksTokens *tokens);
 
 // Prints all tokens in a human-readable format.
-void Cleks_print_tokens(CleksTokens *tokens)
+void Cleks_print_tokens(CleksTokens *tokens);
 
 // Appends a token of a given type to the tokens list.
-void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value)
+void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value);
 
 // check if a token is a default token
-cleks_is_default_token(token)
+cleks_is_default_token(token);
 
 // returns custom-id of a token (type:int, negative for built-in tokens)
-Cleks_get_token(token)
+Cleks_get_token(token);
 ```
 
 ## License

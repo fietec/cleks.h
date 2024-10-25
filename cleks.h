@@ -62,7 +62,7 @@ typedef struct{
     const char const end_del;
 } CleksString;
 
-// a structure enabling high customizability of the lexer
+// customization structure
 typedef struct{
     CleksTokenConfig *default_tokens;      // it is highly encouraged to use CleksDefaultTokenConfig for this, overwise the lexing may fail.
     size_t default_token_count;            // when using CleksDefaultTokenConfig, provide DEFAULT_TOKEN_COUNT
