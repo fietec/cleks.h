@@ -9,6 +9,7 @@
     - [Configuration](#configuration)
         - [Custom Tokens](#custom-tokens)
         - [Comments](#comments)
+        - [Strings](#strings)
         - [Flags](#token-mask)
     - [Templates](#templates)
 - [Examples](#examples)
@@ -79,15 +80,16 @@ for (size_t i=0; i<tokens->size; ++i){
 **Cleks** allows full customization of the lexer by using the `CleksConfig` struct.
 ```c
 typedef struct{
-    CleksTokenConfig* default_tokens;     
-    size_t default_token_count;           
-    CleksTokenConfig* custom_tokens;       
+    CleksTokenConfig *default_tokens;      
+    size_t default_token_count;            
+    CleksTokenConfig *custom_tokens;       
     size_t custom_token_count;             
     const char* const  whitespaces;        
-    const char* const  string_delimters;   
+    CleksString *strings;                  
+    size_t string_count;                   
     CleksComment *comments;                
     size_t comment_count;                  
-    uint8_t token_mask;                  
+    uint8_t token_mask;                 
 } CleksConfig; 
 ```
 #### Field Documentation:
@@ -96,8 +98,9 @@ typedef struct{
 - `custom_tokens` - an array of custom [`CleksTokenConfig`s](#custom-tokens)
 - `custom_token_count` - the amount of custom tokens (can be obtained via the `CLEKS_ARR_LEN` macro)
 - `whitespaces` - a string of characters for the lexer to skip
-- `string_delimeters` - a string of characters defining the beginning and end of a string
-- `comments` - an array of [`CleksComment`s](#comments) to define comment beginnings and ends
+- `strings` - an array of [`CleksString`s](#strings) to define string beginning and end delimeters
+- `string_count` - the amount of comments
+- `comments` - an array of [`CleksComment`s](#comments) to define comment beginning and end delimeters
 - `comment_count` - the amount of comments
 - `token_mask` - a single-byte mask containing further lexing rules (`CLEKS_DEFAULT` as default)
 
@@ -137,6 +140,22 @@ CleksComment TestComments[] = {
     {"//", "\n"},
     {"#", "\n"},
     {"/*", "*/"}
+};
+```
+
+#### Strings
+To define custom strings, provide an array of `CleksString`s.
+```c
+typedef struct{
+    const char const start_del; // the character defining a string's beginning
+    const char const end_del;   // the character defining a string's end
+} CleksString;
+```
+For example:
+```c
+CleksString TestStrings[] = {
+    {'"', '"'},
+    {'[', ']'}
 };
 ```
 
