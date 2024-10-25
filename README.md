@@ -1,4 +1,5 @@
 # Cleks.h Documentation
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/fietec/cleks.h/blob/master/LICENSE)
 
 **Cleks** is a highly configurable header-only c lexer library capable of tokenizing strings based on user-defined rules for any language, data format, or custom syntax.
 
