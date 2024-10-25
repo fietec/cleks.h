@@ -311,8 +311,10 @@ void Cleks_print_tokens(CleksTokens *tokens)
 
 // Appends a token of a given type to the tokens list.
 void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value)
+
 // check if a token is a default token
 cleks_is_default_token(token)
+
 // returns custom-id of a token (type:int, negative for built-in tokens)
 Cleks_get_token(token)
 ```
