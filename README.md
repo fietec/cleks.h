@@ -17,7 +17,6 @@
     - [Custom Example](#custom-example)
     - [Template Example](#template-example)
 - [Function API](#api)
-- [License](#license)
     
 ## Installation
 
@@ -319,7 +318,3 @@ cleks_is_default_token(token);
 // returns custom-id of a token (type:int, negative for built-in tokens)
 Cleks_get_token(token);
 ```
-
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.
