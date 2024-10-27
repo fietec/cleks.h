@@ -68,8 +68,8 @@ For this you can also use the macros provided by **Cleks**:
 ```c
 for (size_t i=0; i<tokens->size; ++i){
     CleksToken token = tokens->items[i];
-    if (!cleks_is_default_token(token)){
-        size_t id = Cleks_get_custom_token_id(token);
+    if (!CLEKS_IS_DEFAULT_TOKEN(token)){
+        size_t id = CLEKS_GET_CUSTOM_TOKEN_ID(token);
         // use this to index the custom tokens
     }
 }
@@ -313,8 +313,8 @@ void Cleks_print_tokens(CleksTokens *tokens);
 void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value);
 
 // check if a token is a default token
-cleks_is_default_token(token);
+CLEKS_IS_DEFAULT_TOKEN(token);
 
 // returns custom-id of a token (type:int, negative for built-in tokens)
-Cleks_get_token(token);
+CLEKS_GET_CUSTOM_TOKEN_ID(token);
 ```

@@ -99,8 +99,8 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
-#define cleks_is_default_token(token) ((token)->type < DEFAULT_TOKEN_COUNT)
-#define Cleks_get_custom_token_id(token) ((token)->type-DEFAULT_TOKEN_COUNT) // returns the implemented custom token from a CleksTokenType (type:int, negative for built-in tokens)
+#define CLEKS_IS_DEFAULT_TOKEN(token) ((token)->type < DEFAULT_TOKEN_COUNT)
+#define CLEKS_GET_CUSTOM_TOKEN_ID(token) ((token)->type-DEFAULT_TOKEN_COUNT) // returns the implemented custom token from a CleksTokenType (type:int, negative for built-in tokens)
 
 #define CLEKS_ARR_LEN(arr) (arr != NULL ? (sizeof((arr))/sizeof((arr)[0])) : 0)
 #define CLEKS_ANSI_END "\e[0m"
