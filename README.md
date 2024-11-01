@@ -61,18 +61,6 @@ typedef struct{
 - TokenType = -2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
 - TokenType = -1: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
 
-Custom tokens therefore start with TokenType=0, which means you can index custom tokens directly by the type of the token, as long as it is positive.
-
-For this you can also use the macro provided by **Cleks**:
-```c
-for (size_t i=0; i<tokens->size; ++i){
-    CleksToken *token = tokens->items[i];
-    if (!CLEKS_IS_CUSTOM_TOKEN(token)){
-        printf("Token Found: %s\n", <CustomTokenConfig>[token].print_string);
-    }
-}
-```
-
 ### Configuration
 
 **Cleks** allows full customization of the lexer via the `CleksConfig` struct.
@@ -122,6 +110,17 @@ CleksTokenConfig TestTokenConfig[] = {
     {"Left-Bracket", "", '('},
     {"Right-Bracket", "", ')'}
 };
+```
+Custom tokens start with TokenType=0, which means you can index custom tokens directly by the type of the token, as long as it is positive.
+
+For this you can also use the macro provided by **Cleks**:
+```c
+for (size_t i=0; i<tokens->size; ++i){
+    CleksToken *token = tokens->items[i];
+    if (CLEKS_TOKEN_IS_CUSTOM(token)){
+        printf("Token Found: %s\n", <CustomTokenConfig>[token].print_string);
+    }
+}
 ```
 
 #### Comments
@@ -310,6 +309,12 @@ void Cleks_print_tokens(CleksTokens *tokens);
 // Appends a token of a given type to the tokens list.
 void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value);
 
-// check if a token is a custom token
-CLEKS_IS_CUSTOM_TOKEN(token);
+// Returns the `print_string` of a token
+char* Cleks_token_to_string(CleksToken *token, CleksConfig config);
+
+// Checks whether a token is valid (does not check upper bound for custom tokens)
+CLEKS_TOKEN_IS_VALID(token);
+
+// Checks whether a token is custom
+CLEKS_TOKEN_IS_CUSTOM(token);
 ```

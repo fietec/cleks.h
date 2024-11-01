@@ -99,7 +99,8 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
-#define CLEKS_IS_CUSTOM_TOKEN(token) ((token)->type >= 0)
+#define CLEKS_TOKEN_IS_VALID(token) ((token) != NULL && (token->type) >= -CLEKS_TOKEN_COUNT)
+#define CLEKS_TOKEN_IS_CUSTOM(token) ((token)->type >= 0)
 
 #define CLEKS_ARR_LEN(arr) (arr != NULL ? (sizeof((arr))/sizeof((arr)[0])) : 0)
 #define CLEKS_ANSI_END "\e[0m"
@@ -359,13 +360,22 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
     return tokens;
 }
 
+char* Cleks_token_to_string(CleksToken *token, CleksConfig config)
+{
+    if (token == NULL || !CLEKS_TOKEN_IS_VALID(token)) return NULL;
+    if (CLEKS_TOKEN_IS_CUSTOM(token) && token->type < config.custom_token_count){
+        return config.custom_tokens[token->type].print_string;
+    }
+    return config.default_tokens[token->type+config.default_token_count].print_string;
+}
+
 void cleks_print_token(CleksToken *token, CleksConfig config)
 {
-    if (token == NULL || token->type < -(int)config.default_token_count || token->type >= (int) config.custom_token_count){
+    if (!CLEKS_TOKEN_IS_VALID(token) || token->type >= (int) config.custom_token_count){
         cleks_eprintln("Invalid token: token: %p, type: %d", token, (int) token->type);
         return;
     }
-    printf("Token % 3d: %s", token->type ,(token->type<0)? config.default_tokens[token->type+config.default_token_count].print_string : config.custom_tokens[token->type].print_string);
+    printf("Token % 3d: %s", token->type, Cleks_token_to_string(token, config));
     if (token->value != NULL){
         printf(" \"%s\"", token->value);
     }
