@@ -43,10 +43,10 @@ typedef struct{
     CleksConfig config;  // the CleksConfig struct provided by the user
 } CleksTokens;
 ```
-Each token has a `type`, being the id of the found token and the `value` field which contains the string content for [default tokens](#default-tokens).
+Each token has a `type` and `value` field which contains the string content for [default tokens](#default-tokens).
 
 ```c
-typedef size_t CleksTokenType;
+typedef int CleksTokenType;
 typedef struct{
     CleksTokenType type;
     char *value;
@@ -54,23 +54,21 @@ typedef struct{
 ```
 ### Default Tokens
 
-**Cleks** defines four tokens by default with respective ids:
+**Cleks** defines four tokens by default with respective `CleksTokenType`s:
 
-- ID=0: `TOKEN_STRING` -> a string was found (content in `CleksToken::value`) 
-- ID=1: `TOKEN_WORD` -> an unknown word was found (content stored in `CleksToken::value`)
-- ID=2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
-- ID=3: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
+- TokenType = -4: `TOKEN_STRING` -> a string was found (content in `CleksToken::value`) 
+- TokenType = -3: `TOKEN_WORD` -> an unknown word was found (content stored in `CleksToken::value`)
+- TokenType = -2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
+- TokenType = -1: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
 
-Custom tokens therefore start with ID=4. This offset is also available through `CLEKS_TOKEN_COUNT`.
-If you want to convert the id of a custom token to the id within the custom tokens (e.g. when creating custom tokens via a enum), check whether a token's id is not smaller than the amount of default tokens (meaning it is not a default token) and subtract the `CLEKS_TOKEN_COUNT`.
+Custom tokens therefore start with TokenType=0, which means you can index custom tokens directly by the type of the token, as long as it is positive.
 
-For this you can also use the macros provided by **Cleks**:
+For this you can also use the macro provided by **Cleks**:
 ```c
 for (size_t i=0; i<tokens->size; ++i){
-    CleksToken token = tokens->items[i];
-    if (!CLEKS_IS_DEFAULT_TOKEN(token)){
-        size_t id = CLEKS_GET_CUSTOM_TOKEN_ID(token);
-        // use this to index the custom tokens
+    CleksToken *token = tokens->items[i];
+    if (!CLEKS_IS_CUSTOM_TOKEN(token)){
+        printf("Token Found: %s\n", <CustomTokenConfig>[token].print_string);
     }
 }
 ```
@@ -244,18 +242,18 @@ int main(void)
 This will generate the following output:
 ```
 Token count: 12
-  Token 7: If
-  Token 9: Left-Bracket
-  Token 1: Word "x"
-  Token 4: Less-Than
-  Token 2: Integer "2"
-  Token 10: Right-Bracket
-  Token 8: Then
-  Token 11: Function-Print
-  Token 9: Left-Bracket
-  Token 0: String "x+1"
-  Token 0: String "is greater than x by 1"
-  Token 10: Right-Bracket
+  Token   3: If
+  Token   5: Left-Bracket
+  Token  -3: Word "x"
+  Token   0: Less-Than
+  Token  -2: Integer "2"
+  Token   6: Right-Bracket
+  Token   4: Then
+  Token   7: Function-Print
+  Token   5: Left-Bracket
+  Token  -4: String "x+1"
+  Token  -4: String "is greater than x by 1"
+  Token   6: Right-Bracket
 ```
 
 ### Template Example
@@ -276,27 +274,27 @@ int main(void)
 This will generate the following output:
 ```
 Token count: 21
-  Token  4: JsonMapOpen: '{'
-  Token  0: String "nums"
-  Token  8: JsonMapSep: ':'
-  Token  6: JsonArrayOpen: '['
-  Token  2: Integer "1"
-  Token  9: JsonIterSet: ','
-  Token  2: Integer "2"
-  Token  9: JsonIterSet: ','
-  Token  2: Integer "3"
-  Token  7: JsonArrayClose: ']'
-  Token  9: JsonIterSet: ','
-  Token  0: String "truth"
-  Token  8: JsonMapSep: ':'
-  Token  6: JsonArrayOpen: '['
-  Token 10: JsonTrue: true
-  Token  9: JsonIterSet: ','
-  Token 11: JsonFalse: false
-  Token  9: JsonIterSet: ','
-  Token 12: JsonNull: null
-  Token  7: JsonArrayClose: ']'
-  Token  5: JsonMapClose: '}'
+  Token   0: JsonMapOpen: '{'
+  Token  -4: String "nums"
+  Token   4: JsonMapSep: ':'
+  Token   2: JsonArrayOpen: '['
+  Token  -2: Integer "1"
+  Token   5: JsonIterSet: ','
+  Token  -2: Integer "2"
+  Token   5: JsonIterSet: ','
+  Token  -2: Integer "3"
+  Token   3: JsonArrayClose: ']'
+  Token   5: JsonIterSet: ','
+  Token  -4: String "truth"
+  Token   4: JsonMapSep: ':'
+  Token   2: JsonArrayOpen: '['
+  Token   6: JsonTrue: true
+  Token   5: JsonIterSet: ','
+  Token   7: JsonFalse: false
+  Token   5: JsonIterSet: ','
+  Token   8: JsonNull: null
+  Token   3: JsonArrayClose: ']'
+  Token   1: JsonMapClose: '}'
 ```
 ## API
 ```c
@@ -312,9 +310,6 @@ void Cleks_print_tokens(CleksTokens *tokens);
 // Appends a token of a given type to the tokens list.
 void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *token_value);
 
-// check if a token is a default token
-CLEKS_IS_DEFAULT_TOKEN(token);
-
-// returns custom-id of a token (type:int, negative for built-in tokens)
-CLEKS_GET_CUSTOM_TOKEN_ID(token);
+// check if a token is a custom token
+CLEKS_IS_CUSTOM_TOKEN(token);
 ```

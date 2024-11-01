@@ -32,11 +32,11 @@
 #define CLEKS_NO_FLOATS   0x2 // floats are not recognized by the lexer
 
 typedef enum{
-    TOKEN_STRING,       // everthing within string delimeters
-    TOKEN_WORD,         // un unknown word
-    TOKEN_INT,          // an integer value
-    TOKEN_FLOAT,        // an floating point value (catches integers when TOKEN_INT is disabled)
-    CLEKS_TOKEN_COUNT // no token, but an indicator of the number of default tokens
+    CLEKS_TOKEN_COUNT = 4,                   // no token, but an indicator of the number of default tokens
+    TOKEN_STRING = -CLEKS_TOKEN_COUNT,       // everthing within string delimeters
+    TOKEN_WORD,                              // un unknown word
+    TOKEN_INT,                               // an integer value
+    TOKEN_FLOAT,                             // an floating point value (catches integers when TOKEN_INT is disabled)
 } CleksDefaultToken;
 
 typedef struct{
@@ -46,10 +46,10 @@ typedef struct{
 } CleksTokenConfig;
 
 static CleksTokenConfig CleksDefaultTokenConfig[] = {
-    [TOKEN_STRING] = {"String", "", '\0'},
-    [TOKEN_WORD] = {"Word", "", '\0'},
-    [TOKEN_INT] = {"Integer", "", '\0'},
-    [TOKEN_FLOAT] = {"Float", "", '\0'}
+    [TOKEN_STRING+CLEKS_TOKEN_COUNT] = {"String", "", '\0'},
+    [TOKEN_WORD+CLEKS_TOKEN_COUNT] = {"Word", "", '\0'},
+    [TOKEN_INT+CLEKS_TOKEN_COUNT] = {"Integer", "", '\0'},
+    [TOKEN_FLOAT+CLEKS_TOKEN_COUNT] = {"Float", "", '\0'}
 };
 
 typedef struct{
@@ -77,7 +77,7 @@ typedef struct{
 } CleksConfig;    
 
 
-typedef size_t CleksTokenType;
+typedef int CleksTokenType;
 typedef struct{
     CleksTokenType type;
     char *value;
@@ -99,8 +99,7 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
-#define CLEKS_IS_DEFAULT_TOKEN(token) ((token)->type < CLEKS_TOKEN_COUNT)
-#define CLEKS_GET_CUSTOM_TOKEN_ID(token) ((token)->type-CLEKS_TOKEN_COUNT) // returns the implemented custom token from a CleksTokenType (type:int, negative for built-in tokens)
+#define CLEKS_IS_CUSTOM_TOKEN(token) ((token)->type >= 0)
 
 #define CLEKS_ARR_LEN(arr) (arr != NULL ? (sizeof((arr))/sizeof((arr)[0])) : 0)
 #define CLEKS_ANSI_END "\e[0m"
@@ -172,7 +171,7 @@ void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *to
 int Cleks_char_to_token(char c, CleksTokenConfig *tokens, size_t size)
 {
     for (size_t i=0; i<size; ++i){
-        if (c == tokens[i].symbol) return i+CLEKS_TOKEN_COUNT;
+        if (c == tokens[i].symbol) return i;
     }
     return CLEKS_NOT_FOUND;
 }
@@ -205,20 +204,20 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens, CleksConfig config)
     for (size_t i=0; i<config.custom_token_count; ++i){
         if (strncmp(clekser->buffer + word_start, config.custom_tokens[i].word, clekser->index - word_start) == 0){
             // words match
-            Cleks_append_token(tokens, (CleksTokenType) i+CLEKS_TOKEN_COUNT, NULL);
+            Cleks_append_token(tokens, (CleksTokenType) i, NULL);
             return 0;
         }
     }
-    char *word_value = strndup(clekser->buffer + word_start, clekser->index - word_start);
+    char *word_value = cleks_strndup(clekser->buffer + word_start, clekser->index - word_start);
     if (word_value == NULL){
         cleks_eprintln("Failed to allocate word value!");
         return 1;
     }
-    if ((config.token_mask & CLEKS_NO_INTEGERS) == 0 && str_is_int(word_value)){
+    if ((config.token_mask & CLEKS_NO_INTEGERS) == 0 && cleks_str_is_int(word_value)){
         Cleks_append_token(tokens, TOKEN_INT, word_value);
         return 0;
     }
-    else if ((config.token_mask & CLEKS_NO_FLOATS) == 0 && str_is_float(word_value)){
+    else if ((config.token_mask & CLEKS_NO_FLOATS) == 0 && cleks_str_is_float(word_value)){
         Cleks_append_token(tokens, TOKEN_FLOAT, word_value);
         return 0;
     }
@@ -362,11 +361,11 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
 
 void cleks_print_token(CleksToken *token, CleksConfig config)
 {
-    if (token == NULL || token->type >= config.default_token_count + config.custom_token_count){
+    if (token == NULL || token->type < -(int)config.default_token_count || token->type >= (int) config.custom_token_count){
         cleks_eprintln("Invalid token: token: %p, type: %d", token, (int) token->type);
         return;
     }
-    printf("Token %d: %s", token->type ,(token->type<config.default_token_count)? config.default_tokens[token->type].print_string : config.custom_tokens[token->type-config.default_token_count].print_string);
+    printf("Token % 3d: %s", token->type ,(token->type<0)? config.default_tokens[token->type+config.default_token_count].print_string : config.custom_tokens[token->type].print_string);
     if (token->value != NULL){
         printf(" \"%s\"", token->value);
     }
@@ -381,7 +380,7 @@ void Cleks_print_tokens(CleksTokens *tokens)
     }
     printf("Token count: %u\n  ", tokens->size);
     for (size_t i=0; i<tokens->size; ++i){
-        Cleks_print_token(tokens->items[i], tokens->config);
+        cleks_print_token(tokens->items[i], tokens->config);
         printf("  ");
     }
 }
