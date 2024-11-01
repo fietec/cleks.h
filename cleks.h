@@ -36,7 +36,7 @@ typedef enum{
     TOKEN_WORD,         // un unknown word
     TOKEN_INT,          // an integer value
     TOKEN_FLOAT,        // an floating point value (catches integers when TOKEN_INT is disabled)
-    DEFAULT_TOKEN_COUNT // no token, but an indicator of the number of default tokens
+    CLEKS_TOKEN_COUNT // no token, but an indicator of the number of default tokens
 } CleksDefaultToken;
 
 typedef struct{
@@ -65,7 +65,7 @@ typedef struct{
 // customization structure
 typedef struct{
     CleksTokenConfig *default_tokens;      // it is highly encouraged to use CleksDefaultTokenConfig for this, overwise the lexing may fail.
-    size_t default_token_count;            // when using CleksDefaultTokenConfig, provide DEFAULT_TOKEN_COUNT
+    size_t default_token_count;            // when using CleksDefaultTokenConfig, provide CLEKS_TOKEN_COUNT
     CleksTokenConfig *custom_tokens;       // provided your custom tokens
     size_t custom_token_count;             // the number of custom tokens (tip: use CLEKS_ARR_LEN)
     const char* const  whitespaces;        // a string with each character defining a whitespace
@@ -99,8 +99,8 @@ typedef struct{
 #define CLEKS_NOT_FOUND -1
 #define CLEKSTOKENS_RSF 2
 
-#define CLEKS_IS_DEFAULT_TOKEN(token) ((token)->type < DEFAULT_TOKEN_COUNT)
-#define CLEKS_GET_CUSTOM_TOKEN_ID(token) ((token)->type-DEFAULT_TOKEN_COUNT) // returns the implemented custom token from a CleksTokenType (type:int, negative for built-in tokens)
+#define CLEKS_IS_DEFAULT_TOKEN(token) ((token)->type < CLEKS_TOKEN_COUNT)
+#define CLEKS_GET_CUSTOM_TOKEN_ID(token) ((token)->type-CLEKS_TOKEN_COUNT) // returns the implemented custom token from a CleksTokenType (type:int, negative for built-in tokens)
 
 #define CLEKS_ARR_LEN(arr) (arr != NULL ? (sizeof((arr))/sizeof((arr)[0])) : 0)
 #define CLEKS_ANSI_END "\e[0m"
@@ -112,10 +112,10 @@ typedef struct{
 
 #define CLEKS_ASSERT(statement, msg, ...) do{if (!(statement)) {cleks_eprintln(msg, ##__VA_ARGS__); exit(1);}} while (0);
 
-void Cleks_print_token(CleksToken *token, CleksConfig config);
-static char* strndup(char *s, size_t n);
-static bool str_is_int(char *s);
-static bool str_is_float(char *s);
+void cleks_print_token(CleksToken *token, CleksConfig config);
+static char* cleks_strndup(char *s, size_t n);
+static bool cleks_str_is_int(char *s);
+static bool cleks_str_is_float(char *s);
 
 CleksTokens* Cleks_create_tokens(size_t capacity, CleksConfig config)
 {
@@ -172,7 +172,7 @@ void Cleks_append_token(CleksTokens *tokens, CleksTokenType token_type, char *to
 int Cleks_char_to_token(char c, CleksTokenConfig *tokens, size_t size)
 {
     for (size_t i=0; i<size; ++i){
-        if (c == tokens[i].symbol) return i+DEFAULT_TOKEN_COUNT;
+        if (c == tokens[i].symbol) return i+CLEKS_TOKEN_COUNT;
     }
     return CLEKS_NOT_FOUND;
 }
@@ -205,7 +205,7 @@ int Cleks_lex_word(Clekser *clekser, CleksTokens *tokens, CleksConfig config)
     for (size_t i=0; i<config.custom_token_count; ++i){
         if (strncmp(clekser->buffer + word_start, config.custom_tokens[i].word, clekser->index - word_start) == 0){
             // words match
-            Cleks_append_token(tokens, (CleksTokenType) i+DEFAULT_TOKEN_COUNT, NULL);
+            Cleks_append_token(tokens, (CleksTokenType) i+CLEKS_TOKEN_COUNT, NULL);
             return 0;
         }
     }
@@ -360,7 +360,7 @@ CleksTokens* Cleks_lex(char *buffer, size_t buffer_size, CleksConfig config)
     return tokens;
 }
 
-void Cleks_print_token(CleksToken *token, CleksConfig config)
+void cleks_print_token(CleksToken *token, CleksConfig config)
 {
     if (token == NULL || token->type >= config.default_token_count + config.custom_token_count){
         cleks_eprintln("Invalid token: token: %p, type: %d", token, (int) token->type);
@@ -388,7 +388,7 @@ void Cleks_print_tokens(CleksTokens *tokens)
 
 // string functions
 
-static char* strndup(char *s, size_t n)
+static char* cleks_strndup(char *s, size_t n)
 {
     if (s == NULL) return NULL;
     char *n_str = (char*) calloc(n+1, sizeof(char));
@@ -398,7 +398,7 @@ static char* strndup(char *s, size_t n)
     return n_str;
 }
 
-static bool str_is_int(char* s)
+static bool cleks_str_is_int(char* s)
 {
     if (!s) return false;
     char c;
@@ -410,7 +410,7 @@ static bool str_is_int(char* s)
     return true;
 }
 
-static bool str_is_float(char* s)
+static bool cleks_str_is_float(char* s)
 {
     char* ep = NULL;
     strtod(s, &ep);

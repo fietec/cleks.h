@@ -61,8 +61,8 @@ typedef struct{
 - ID=2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
 - ID=3: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
 
-Custom tokens therefore start with ID=4. This offset is also available through `DEFAULT_TOKEN_COUNT`.
-If you want to convert the id of a custom token to the id within the custom tokens (e.g. when creating custom tokens via a enum), check whether a token's id is not smaller than the amount of default tokens (meaning it is not a default token) and subtract the `DEFAULT_TOKEN_COUNT`.
+Custom tokens therefore start with ID=4. This offset is also available through `CLEKS_TOKEN_COUNT`.
+If you want to convert the id of a custom token to the id within the custom tokens (e.g. when creating custom tokens via a enum), check whether a token's id is not smaller than the amount of default tokens (meaning it is not a default token) and subtract the `CLEKS_TOKEN_COUNT`.
 
 For this you can also use the macros provided by **Cleks**:
 ```c
@@ -94,7 +94,7 @@ typedef struct{
 ```
 #### Field Documentation:
 - `default_tokens` - the default tokens of the lexer (always provide `CleksDefaultTokenConfig`)
-- `default_token_count` - the amount of default tokens (use `DEFAULT_TOKEN_COUNT`)
+- `default_token_count` - the amount of default tokens (use `CLEKS_TOKEN_COUNT`)
 - `custom_tokens` - an array of custom [`CleksTokenConfig`s](#custom-tokens)
 - `custom_token_count` - the amount of custom tokens (can be obtained via the `CLEKS_ARR_LEN` macro)
 - `whitespaces` - a string of characters for the lexer to skip
@@ -223,7 +223,7 @@ int main(void)
 {
     CleksConfig TestConfig = {
         .default_tokens = CleksDefaultTokenConfig,
-        .default_token_count = DEFAULT_TOKEN_COUNT,
+        .default_token_count = CLEKS_TOKEN_COUNT,
         .custom_tokens = TestTokenConfig,
         .custom_token_count = CLEKS_ARR_LEN(TestTokenConfig),
         .whitespaces = " \n",  // we skip ' ' and '\n'

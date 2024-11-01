@@ -37,7 +37,7 @@ int main(void)
 {
     CleksConfig TestConfig = {
         .default_tokens = CleksDefaultTokenConfig,
-        .default_token_count = DEFAULT_TOKEN_COUNT,
+        .default_token_count = CLEKS_TOKEN_COUNT,
         .custom_tokens = TestTokenConfig,
         .custom_token_count = CLEKS_ARR_LEN(TestTokenConfig),
         .whitespaces = " \n",

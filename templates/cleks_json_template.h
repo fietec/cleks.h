@@ -33,7 +33,7 @@ CleksString JsonStrings[] = {
 
 CleksConfig JsonConfig = {
     .default_tokens = CleksDefaultTokenConfig,
-    .default_token_count = DEFAULT_TOKEN_COUNT,
+    .default_token_count = CLEKS_TOKEN_COUNT,
     .custom_tokens = JsonTokenConfig,
     .custom_token_count = CLEKS_ARR_LEN(JsonTokenConfig),
     .whitespaces = " \n",
