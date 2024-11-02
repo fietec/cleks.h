@@ -393,6 +393,7 @@ void Cleks_print_tokens(CleksTokens *tokens)
         cleks_print_token(tokens->items[i], tokens->config);
         printf("  ");
     }
+    putchar('\n');
 }
 
 // string functions
