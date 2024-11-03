@@ -45,7 +45,7 @@ int main(void)
         .string_count = CLEKS_ARR_LEN(TestStrings),
         .comments = TestComments,
         .comment_count = CLEKS_ARR_LEN(TestComments),
-        .token_mask = CLEKS_DEFAULT
+        .flags = CLEKS_FLAG_DEFAULT
     };
 
     char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print(\"x+1\"[is greater than x by 1])";

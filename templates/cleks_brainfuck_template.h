@@ -43,7 +43,7 @@ CleksConfig BrainfuckConfig = {
     .string_count = CLEKS_ARR_LEN(BrainfuckStrings),
     .comments = BrainfuckComments,
     .comment_count = CLEKS_ARR_LEN(BrainfuckComments),
-    .token_mask = CLEKS_NO_INTEGERS | CLEKS_NO_FLOATS
+    .flags = CLEKS_FLAG_NO_INTEGERS | CLEKS_FLAG_NO_FLOATS
 };
 
 #endif // _CLEKS_BRAINFUCK_TEMPLATE

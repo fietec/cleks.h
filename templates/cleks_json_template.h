@@ -20,7 +20,7 @@ static CleksTokenConfig JsonTokenConfig[] = {
     [JSON_ARRAY_OPEN] = {"JsonArrayOpen: '['", "", '['},
     [JSON_ARRAY_CLOSE] = {"JsonArrayClose: ']'", "", ']'},
     [JSON_MAP_SEP] = {"JsonMapSep: ':'", "", ':'},
-    [JSON_ITER_SEP] = {"JsonIterSet: ','", "", ','},
+    [JSON_ITER_SEP] = {"JsonIterSep: ','", "", ','},
     [JSON_TRUE] = {"JsonTrue: true", "true", '\0'},
     [JSON_FALSE] = {"JsonFalse: false", "false", '\0'},
     [JSON_NULL] = {"JsonNull: null", "null", '\0'}
@@ -41,7 +41,7 @@ CleksConfig JsonConfig = {
     .string_count = CLEKS_ARR_LEN(JsonStrings),
     .comments = JsonComments,
     .comment_count = CLEKS_ARR_LEN(JsonComments),
-    .token_mask = CLEKS_DEFAULT
+    .flags = CLEKS_FLAG_DEFAULT
 };
 
 #endif // _CLEKS_JSON_TEMPLATE_H

@@ -56,10 +56,10 @@ typedef struct{
 
 **Cleks** defines four tokens by default with respective `CleksTokenType`s:
 
-- TokenType = -4: `TOKEN_STRING` -> a string was found (content in `CleksToken::value`) 
-- TokenType = -3: `TOKEN_WORD` -> an unknown word was found (content stored in `CleksToken::value`)
-- TokenType = -2: `TOKEN_INT` -> an integer word was found (content as string in `CleksToken::value`)
-- TokenType = -1: `TOKEN_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
+- TokenType = -4: `CLEKS_STRING` -> a string was found (content in `CleksToken::value`) 
+- TokenType = -3: `CLEKS_WORD` -> an unknown word was found (content stored in `CleksToken::value`)
+- TokenType = -2: `CLEKS_INT` -> an integer word was found (content as string in `CleksToken::value`)
+- TokenType = -1: `CLEKS_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
 
 ### Configuration
 
@@ -75,7 +75,7 @@ typedef struct{
     size_t string_count;                   
     CleksComment *comments;                
     size_t comment_count;                  
-    uint8_t token_mask;                 
+    uint8_t flags;                 
 } CleksConfig; 
 ```
 #### Field Documentation:
@@ -88,7 +88,7 @@ typedef struct{
 - `string_count` - the amount of comments
 - `comments` - an array of [`CleksComment`s](#comments) to define comment beginning and end delimeters
 - `comment_count` - the amount of comments
-- `token_mask` - a single-byte mask containing further lexing rules (`CLEKS_DEFAULT` as default)
+- `flags` - a single-byte mask containing further lexing rules (`CLEKS_FLAG_DEFAULT` as default)
 
 #### Custom Tokens
 To define custom tokens, provide an array of `CleksTokenConfig`s.
@@ -160,13 +160,13 @@ CleksString TestStrings[] = {
 This mask is used to further customize the behaviour of the lexer.
 
 Currently these flags are available:
-- `CLEKS_DEFAULT` - the default behaviour
-- `CLEKS_NO_INTEGERS` - don't recognize integers, instead use `TOKEN_WORD`
-- `CLEKS_NO_FLOATS` - dont recognize floats, insted use `TOKEN_WORD`
+- `CLEKS_FLAG_DEFAULT` - the default behaviour
+- `CLEKS_FLAG_NO_INTEGERS` - don't recognize integers, instead use `TOKEN_WORD`
+- `CLEKS_FLAG_NO_FLOATS` - dont recognize floats, insted use `TOKEN_WORD`
 
 You can combine these flags by using Bitwise-OR:
 
-`.token_mask = CLEKS_NO_INTEGERS | CLEKS_NO_FLOATS`
+`.flags = CLEKS_FLAG_NO_INTEGERS | CLEKS_FLAG_NO_FLOATS`
 
 ### Templates
 **Cleks** provides several templates for well-known formats, such as *JSON* and *Brainfuck*.
@@ -228,7 +228,7 @@ int main(void)
         .string_count = CLEKS_ARR_LEN(TestStrings),
         .comments = TestComments,
         .comment_count = CLEKS_ARR_LEN(TestComments),
-        .token_mask = CLEKS_DEFAULT
+        .flags = CLEKS_FLAG_DEFAULT
     };
 
     char buffer[] = "if(x < 2)/*this is a comment */ // this is also a comment \nthen print(\"x+1\"[is greater than x by 1])"; // our test buffer
@@ -278,19 +278,19 @@ Token count: 21
   Token   4: JsonMapSep: ':'
   Token   2: JsonArrayOpen: '['
   Token  -2: Integer "1"
-  Token   5: JsonIterSet: ','
+  Token   5: JsonIterSep: ','
   Token  -2: Integer "2"
-  Token   5: JsonIterSet: ','
+  Token   5: JsonIterSep: ','
   Token  -2: Integer "3"
   Token   3: JsonArrayClose: ']'
-  Token   5: JsonIterSet: ','
+  Token   5: JsonIterSep: ','
   Token  -4: String "truth"
   Token   4: JsonMapSep: ':'
   Token   2: JsonArrayOpen: '['
   Token   6: JsonTrue: true
-  Token   5: JsonIterSet: ','
+  Token   5: JsonIterSep: ','
   Token   7: JsonFalse: false
-  Token   5: JsonIterSet: ','
+  Token   5: JsonIterSep: ','
   Token   8: JsonNull: null
   Token   3: JsonArrayClose: ']'
   Token   1: JsonMapClose: '}'
