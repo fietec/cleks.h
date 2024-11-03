@@ -11,7 +11,7 @@
         - [Custom Tokens](#custom-tokens)
         - [Comments](#comments)
         - [Strings](#strings)
-        - [Flags](#token-mask)
+        - [Flags](#flags)
     - [Templates](#templates)
 - [Examples](#examples)
     - [Custom Example](#custom-example)
@@ -88,7 +88,7 @@ typedef struct{
 - `string_count` - the amount of comments
 - `comments` - an array of [`CleksComment`s](#comments) to define comment beginning and end delimeters
 - `comment_count` - the amount of comments
-- `flags` - a single-byte mask containing further lexing rules (`CLEKS_FLAG_DEFAULT` as default)
+- `flags` - a single-byte [flag](#flags) mask containing further lexing rules (`CLEKS_FLAG_DEFAULT` as default)
 
 #### Custom Tokens
 To define custom tokens, provide an array of `CleksTokenConfig`s.
@@ -156,13 +156,13 @@ CleksString TestStrings[] = {
 };
 ```
 
-#### Token Mask
+#### Flags
 This mask is used to further customize the behaviour of the lexer.
 
 Currently these flags are available:
 - `CLEKS_FLAG_DEFAULT` - the default behaviour
-- `CLEKS_FLAG_NO_INTEGERS` - don't recognize integers, instead use `TOKEN_WORD`
-- `CLEKS_FLAG_NO_FLOATS` - dont recognize floats, insted use `TOKEN_WORD`
+- `CLEKS_FLAG_NO_INTEGERS` - don't recognize integers, instead use `CLEKS_WORD`
+- `CLEKS_FLAG_NO_FLOATS` - dont recognize floats, insted use `CLEKS_WORD`
 
 You can combine these flags by using Bitwise-OR:
 
@@ -171,7 +171,7 @@ You can combine these flags by using Bitwise-OR:
 ### Templates
 **Cleks** provides several templates for well-known formats, such as *JSON* and *Brainfuck*.
 Templates can be found in the `templates` directory in the repository.
-When [using a template](#template-example), there is no need of creating a CleksConfig by yourself.
+When [using a template](#template-example), there is no need of creating a `CleksConfig` by yourself.
 
 ## Examples
 Here are a few examples of how to use **Cleks**: 
