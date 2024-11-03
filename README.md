@@ -57,9 +57,9 @@ typedef struct{
 **Cleks** defines four tokens by default with respective `CleksTokenType`s:
 
 - TokenType = -4: `CLEKS_STRING` -> a string was found (content in `CleksToken::value`) 
-- TokenType = -3: `CLEKS_WORD` -> an unknown word was found (content stored in `CleksToken::value`)
+- TokenType = -3: `CLEKS_WORD` -> an unknown word was found (content in `CleksToken::value`)
 - TokenType = -2: `CLEKS_INT` -> an integer word was found (content as string in `CleksToken::value`)
-- TokenType = -1: `CLEKS_FLOAT` -> an float word was found (content as string in `CleksToken::value`)
+- TokenType = -1: `CLEKS_FLOAT` -> a float word was found (content as string in `CleksToken::value`)
 
 ### Configuration
 
@@ -85,7 +85,7 @@ typedef struct{
 - `custom_token_count` - the amount of custom tokens (can be obtained via the `CLEKS_ARR_LEN` macro)
 - `whitespaces` - a string of characters for the lexer to skip
 - `strings` - an array of [`CleksString`s](#strings) to define string beginning and end delimeters
-- `string_count` - the amount of comments
+- `string_count` - the amount of strings
 - `comments` - an array of [`CleksComment`s](#comments) to define comment beginning and end delimeters
 - `comment_count` - the amount of comments
 - `flags` - a single-byte [flag](#flags) mask containing further lexing rules (`CLEKS_FLAG_DEFAULT` as default)
@@ -96,7 +96,7 @@ To define custom tokens, provide an array of `CleksTokenConfig`s.
 typedef struct{
     char* print_string; // the string to print for Cleks_print_tokens
     char* word;         // the string defining a word, "" for non-words
-    char  symbol;       // the character defining a symbol, '\0' non-symbols
+    char  symbol;       // the character defining a symbol, '\0' for non-symbols
 } CleksTokenConfig;
 ```
 As can be seen above, there are two types of custom tokens, *WORDS* and *SYMBOLS*.
