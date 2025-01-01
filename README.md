@@ -318,3 +318,6 @@ CLEKS_TOKEN_IS_VALID(token);
 // Checks whether a token is custom
 CLEKS_TOKEN_IS_CUSTOM(token);
 ```
+
+## cleks2.h
+`cleks2` is the next iteration of **Cleks**, currently still in development
