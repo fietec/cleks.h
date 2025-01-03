@@ -23,9 +23,13 @@
 #define CLEKS_VALUE_FORMAT "%.*s"
 
 #define CLEKS_FLAGS_ALL 0x0
-#define CLEKS_FLAGS_NO_INTEGERS 0x1
-#define CLEKS_FLAGS_NO_FLOATS 0x2
-#define CLEKS_FLAGS_NO_UNKNOWN 0x4
+#define CLEKS_FLAGS_INTEGERS 0x1
+#define CLEKS_FLAGS_FLOATS 0x2
+#define CLEKS_FLAGS_HEX 0x4
+#define CLEKS_FLAGS_BIN 0x8
+#define CLEKS_FLAGS_NO_UNKNOWN 0x10
+
+#define CLEKS_NO_LOC (CleksLoc) {0}
 
 /* Debugging */
 #define cleks_info(msg, ...) (printf("%s%s:%d: " msg CLEKS_ANSI_END "\n", CLEKS_ANSI_RGB(255, 255, 255), __FILE__, __LINE__, ## __VA_ARGS__))
@@ -44,7 +48,7 @@
 #define clekser__get_pointer(clekser) (clekser)->buffer + (clekser)->index
 #define clekser__check_line(clekser) do{if (clekser__get_char((clekser)) == '\n'){(clekser)->loc.row++; (clekser)->loc.column=1;}else{clekser->loc.column++;}}while(0);
 
-#define cleks__is_special(c) ((c) == '\n' || (c) == '\0' || (c) == EOF)
+#define cleks__is_special(c) ((c) == '\0' || (c) == EOF)
 
 /* User macros */
 // #define cleks_token_type(token) (CleksTokenTypeNames[(uint64_t)(token)])
@@ -68,6 +72,8 @@ typedef enum{
 	CLEKS_STRING,
 	CLEKS_INTEGER,
 	CLEKS_FLOAT,
+	CLEKS_HEX,
+	CLEKS_BIN,
 	CLEKS_UNKNOWN,
 	CLEKS_TOKEN_TYPE_COUNT
 } CleksTokenType;
@@ -78,6 +84,8 @@ const char* CleksTokenTypeNames[] = {
 	[CLEKS_STRING] = "String",
 	[CLEKS_INTEGER] = "Int",
 	[CLEKS_FLOAT] = "Float",
+	[CLEKS_HEX] = "Hex",
+	[CLEKS_BIN] = "Bin",
 	[CLEKS_UNKNOWN] = "Unknown"
 };
 // assert( CLEKS_TOKEN_TYPE_COUNT == 6 &&  "CleksTokenTypeNames out of sync!");
@@ -127,7 +135,6 @@ typedef struct{
 	CleksLoc loc;
 	size_t index;
 	CleksConfig config;
-	char *filename;
 } Clekser;
 
 /* Function declerations */
@@ -135,9 +142,9 @@ typedef struct{
 // 'public' functions
 Clekser Cleks_create(char *buffer, size_t buffer_size, CleksConfig config, char *filename);
 bool Cleks_next(Clekser *clekser, CleksToken *token);
+bool Cleks_expect(Clekser *clekser, CleksToken *token, CleksTokenType type, uint32_t id);
 bool Cleks_extract(CleksToken *token, char *buffer, size_t buffer_size);
 void Cleks_print(CleksToken token);
-void Cleks_printf(CleksLoc loc, char *format, ...);
 
 // 'private' functions
 void Cleks__trim_left(Clekser *clekser);
@@ -150,6 +157,9 @@ bool Cleks__is_whitespace(Clekser *clekser, char c);
 bool Cleks__starts_with(Clekser *clekser, char *str);
 bool Cleks__str_is_float(char *s, char *e);
 bool Cleks__str_is_int(char *s, char *e);
+bool Cleks__str_is_hex(char *s, char *e);
+bool Cleks__str_is_bin(char *s, char *e);
+void Cleks__print_default(CleksToken token);
 
 #endif // _CLEKS_H
 
@@ -163,7 +173,7 @@ bool Cleks__str_is_int(char *s, char *e);
 Clekser Cleks_create(char *buffer, size_t buffer_size, CleksConfig config, char *filename)
 {
 	cleks_assert(buffer != NULL, "Invalid parameter buffer:%p", buffer);
-	return (Clekser) {.buffer = buffer, .buffer_size=buffer_size, .loc=(CleksLoc){1, 1, filename}, .index=0, .config=config, filename=filename};
+	return (Clekser) {.buffer = buffer, .buffer_size=buffer_size, .loc=(CleksLoc){1, 1, filename}, .index=0, .config=config};
 }
 
 bool Cleks_next(Clekser *clekser, CleksToken *token)
@@ -171,10 +181,7 @@ bool Cleks_next(Clekser *clekser, CleksToken *token)
 	cleks_assert(clekser != NULL && token != NULL, "Invalid arguments clekser:%p, token:%p", clekser, token);
 
 	while (true){
-		if (clekser->index >= clekser->buffer_size){
-			printf("END REACHED\n");
-			return false;
-		}
+		if (clekser->index >= clekser->buffer_size) return false;
 		// skip spaces
 		Cleks__trim_left(clekser);
 		cleks_debug("Position after trim: %d:%d", clekser->loc.row, clekser->loc.column);
@@ -262,16 +269,20 @@ bool Cleks_next(Clekser *clekser, CleksToken *token)
 	}
 	cleks_debug("Trying to lex nums");
 	// no matching words found
-	// printf("word of length %d does not match\n", p_end-p_start);
-	// cleks_debug("Int enabled: %s, is int: %s", b((clekser->config.flags & CLEKS_FLAGS_NO_INTEGERS) == 0), b(Cleks__str_is_int(p_start, p_end)));
-	if ((clekser->config.flags & CLEKS_FLAGS_NO_INTEGERS) == 0 && Cleks__str_is_int(p_start, p_end)){
+	if ((clekser->config.flags & CLEKS_FLAGS_INTEGERS) && Cleks__str_is_int(p_start, p_end)){
 		Cleks__set_token(token, CLEKS_INTEGER, 0, start_loc, p_start, p_end);
 		return true;
 	}
-	// cleks_debug("Float enabled: %s, is float: %s", b((clekser->config.flags & CLEKS_FLAGS_NO_FLOATS) == 0), b(Cleks__str_is_float(p_start, p_end)));
-	// cleks_debug("Float enabled: %s, is float: %s", b((clekser->config.flags & CLEKS_FLAGS_NO_FLOATS) == 0), b(Cleks__str_is_float(p_start, p_end)));
-	if ((clekser->config.flags & CLEKS_FLAGS_NO_FLOATS) == 0 && Cleks__str_is_float(p_start, p_end)){
+	if ((clekser->config.flags & CLEKS_FLAGS_FLOATS)&& Cleks__str_is_float(p_start, p_end)){
 		Cleks__set_token(token, CLEKS_FLOAT, 0, start_loc, p_start, p_end);
+		return true;
+	}
+	if ((clekser->config.flags & CLEKS_FLAGS_HEX) && Cleks__str_is_hex(p_start, p_end)){
+		Cleks__set_token(token, CLEKS_HEX, 0, start_loc, p_start, p_end);
+		return true;
+	}
+	if ((clekser->config.flags & CLEKS_FLAGS_BIN) && Cleks__str_is_bin(p_start, p_end)){
+		Cleks__set_token(token, CLEKS_BIN, 0, start_loc, p_start, p_end);
 		return true;
 	}
 	if ((clekser->config.flags & CLEKS_FLAGS_NO_UNKNOWN) == 0){
@@ -338,31 +349,30 @@ bool Cleks_extract(CleksToken *token, char *buffer, size_t buffer_size)
 	return true;
 }
 
-void Cleks_print(CleksToken token)
+void Cleks__print_default(CleksToken token)
 {
-	printf("%s:%d:%d %s: ", token.loc.filename, token.loc.row, token.loc.column, cleks_token_type_name(cleks_token_type(token)));
 	// TODO: probably best to do this with string builders instead
 	CleksTokenType type = cleks_token_type(token);
+	cleks_assert(type < CLEKS_TOKEN_TYPE_COUNT, "Invalid token type: %u!", type);
 	switch(type){
 		case CLEKS_WORD:
 		case CLEKS_SYMBOL: printf("'%.*s'", token.end-token.start, token.start); break;
 		case CLEKS_STRING: printf("\"%.*s\"", token.end-token.start, token.start); break;
 		case CLEKS_INTEGER:
-		case CLEKS_FLOAT: printf("%.*s", token.end-token.start, token.start); break;
+		case CLEKS_FLOAT: 
+		case CLEKS_HEX: 
+		case CLEKS_BIN: printf("%.*s", token.end-token.start, token.start); break;
 		case CLEKS_UNKNOWN: printf("<%.*s>", token.end-token.start, token.start); break;
-		default: cleks_error("\nInvalid token type: %u", type); exit(1);
+		default: cleks_error("Uninplemented type in print: %s", cleks_token_type_name(type)); exit(1);
 	}
-	putchar('\n');
 }
 
-void Cleks_printf(CleksLoc loc, char *format, ...)
+void Cleks_print(CleksToken token)
 {
-	va_list args;
-	va_start(args, format);
-	printf("%s:%d:%d ", loc.filename, loc.row, loc.column);
-	vprintf(format, args);
-	printf("\n");
-	va_end(args);
+	if (token.loc.filename != NULL) printf("%s:", token.loc.filename);
+	printf("%d:%d %s: ", token.loc.row, token.loc.column, cleks_token_type_name(cleks_token_type(token)));
+	Cleks__print_default(token);
+	putchar('\n');
 }
 
 void Cleks__trim_left(Clekser *clekser)
@@ -460,6 +470,27 @@ bool Cleks__str_is_float(char *s, char *e)
     char* ep = NULL;
     strtod(s, &ep);
     return (ep && ep == e);
+}
+
+bool Cleks__str_is_hex(char *s, char *e)
+{
+	if (s == NULL || e == NULL || e-s < 3) return false;
+	if (*s++ != '0' || *s++ != 'x') return false;
+	while (s < e){
+		if (!isxdigit(*s++)) return false;
+	}
+	return true;
+}
+
+bool Cleks__str_is_bin(char *s, char *e)
+{
+	if (s == NULL || e == NULL || e-s < 3) return false;
+	if (*s++ != '0' || *s++ != 'b') return false;
+	while (s < e){
+		char c = *s++;
+		if (c != '0' && c != '1') return false;
+	}
+	return true;
 }
 
 #endif // CLEKS_IMPLEMENTATION
