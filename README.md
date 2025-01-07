@@ -1,7 +1,9 @@
 # Cleks.h Documentation
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/fietec/cleks.h/blob/master/LICENSE)
 
-**Cleks** is a highly configurable header-only c lexer library capable of tokenizing strings based on user-defined rules for any language, data format, or custom syntax.
+`cleks.h` is a highly configurable header-only c lexer library capable of tokenizing strings based on user-defined rules for any language, data format, or custom syntax.
+
+For a rewritten and incremental version of this lexer, try [cleks2.h](https://github.com/fietec/cleks2.h)
 
 ## Table of Contents
 - [Installation](#installation)
@@ -318,6 +320,3 @@ CLEKS_TOKEN_IS_VALID(token);
 // Checks whether a token is custom
 CLEKS_TOKEN_IS_CUSTOM(token);
 ```
-
-## cleks2.h
-`cleks2` is the next iteration of **Cleks**, currently still in development
